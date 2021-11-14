@@ -6,8 +6,8 @@ parameters:
   type: string
   default: 'Release'
 - name: projects
-  type: object
-  default: ['**/*.csproj']
+  type: string
+  default: '**/*.csproj'
   
 jobs:
 - job: ${{ parameters.jobName }}
