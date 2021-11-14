@@ -1,0 +1,48 @@
+parameters:
+- name: workingDirectory
+- name: backendServiceArm
+- name: backendAzureRmResourceGroupName
+- name: backendAzureRmStorageAccountName
+- name: backendAzureRmContainerName
+- name: backendAzureRmKey
+- name: environmentServiceNameAzureRM
+- name: varFile
+
+stages:
+- stage: ValidateTerraform
+
+  variables:
+    commandOptions: '-var-file="${{ parameters.varFile }}"'
+
+  jobs:
+  - job: ValidateTerraform
+    steps:
+      - task: TerraformInstaller@0
+        displayName: 'Terraform: Install'
+        inputs:
+          terraformVersion: '1.0.7'
+
+      - task: TerraformTaskV2@2
+        displayName: 'Terraform: Init'
+        inputs:
+          workingDirectory: '${{ parameters.workingDirectory }}'
+          backendServiceArm: '${{ parameters.backendServiceArm }}'
+          backendAzureRmResourceGroupName: '${{ parameters.backendAzureRmResourceGroupName }}'
+          backendAzureRmStorageAccountName: '${{ parameters.backendAzureRmStorageAccountName }}'
+          backendAzureRmContainerName: '${{ parameters.backendAzureRmContainerName }}'
+          backendAzureRmKey: '${{ parameters.backendAzureRmKey }}'
+
+      - task: TerraformTaskV2@2
+        displayName: 'Terraform: Validate'
+        inputs:
+          command: validate
+          workingDirectory: '${{ parameters.workingDirectory }}'
+          environmentServiceNameAzureRM: '${{ parameters.environmentServiceNameAzureRM }}'
+
+      - task: TerraformTaskV2@2
+        displayName: 'Terraform: Plan'
+        inputs:
+          command: plan
+          workingDirectory: '${{ parameters.workingDirectory }}'
+          commandOptions: '$(commandOptions)'
+          environmentServiceNameAzureRM: '${{ parameters.environmentServiceNameAzureRM }}'
