@@ -1,0 +1,35 @@
+parameters:
+- name: jobName
+  type: string
+  default: 'BuildNetCoreProjects'
+- name: buildConfiguration
+  type: string
+  default: 'Release'
+- name: projects
+  type: object
+  default: ['**/*.csproj']
+  
+jobs:
+- job: ${{ parameters.jobName }}
+
+  pool:
+    vmImage: ubuntu-latest
+
+  steps:
+
+  - checkout: self
+
+  - task: DotNetCoreCLI@2
+    displayName: 'restore'
+    inputs:
+      command: restore
+      projects: ${{ parameters.projects }}
+      feedsToUse: 'config'
+      nugetConfigPath: './src/nuget.config'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'build'
+    inputs:
+      command: build
+      projects: ${{ parameters.projects }}
+      arguments: '--configuration ${{ parameters.buildConfiguration }}'
