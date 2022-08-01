@@ -23,7 +23,9 @@ jobs:
   dependsOn: ${{ parameters.dependsOn }}
 
   variables:
-    buildConfiguration: 'Release'
+  - group: NuGet.org
+  - name: buildConfiguration
+    value: Release
 
   steps:
   - task: UseDotNet@2
@@ -55,15 +57,6 @@ jobs:
       packDestination: '$(Build.ArtifactStagingDirectory)'
       buildProperties: 'Version="${{ parameters.MajorMinorVersion }}.$(Build.BuildId)"'
 
-  - task: NuGetAuthenticate@1
-    condition: and(succeeded(), eq('${{ parameters.publishToNuGet }}', 'true'))
-    displayName: 'NuGet Authenticate'
-    inputs:
-      nuGetServiceConnections: NuGet.org
-
-  - task: NuGetCommand@2
-    condition: and(succeeded(), eq('${{ parameters.publishToNuGet }}', 'true'))
-    inputs:
-      command: push
-      nuGetFeedType: external
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+  - script: |
+      dotnet nuget push '$(Build.ArtifactStagingDirectory)/*.nupkg' --source https://api.nuget.org/v3/index.json --api-key $(NUGET-PUSH-KEY-1)
+    condition: and(succeeded(), eq('${{ parameters.publishToNuGet }}', 'true'))      
