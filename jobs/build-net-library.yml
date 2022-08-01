@@ -55,7 +55,7 @@ jobs:
       packDestination: '$(Build.ArtifactStagingDirectory)'
       buildProperties: 'Version="${{ parameters.MajorMinorVersion }}.$(Build.BuildId)"'
 
-  - task: NuGetAuthenticate@0
+  - task: NuGetAuthenticate@1
     condition: and(succeeded(), eq('${{ parameters.publishToNuGet }}', 'true'))
     displayName: 'NuGet Authenticate'
     inputs:
