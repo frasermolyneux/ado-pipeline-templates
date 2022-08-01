@@ -28,6 +28,8 @@ jobs:
     runOnce:
       deploy:
         steps: 
+          - checkout: self
+          
           - download: current
             displayName: 'Download ${{ parameters.projectName }} artifact'
             artifact: ${{ parameters.projectName }}
