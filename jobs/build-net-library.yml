@@ -58,10 +58,12 @@ jobs:
   - task: NuGetAuthenticate@0
     condition: and(succeeded(), eq('${{ parameters.publishToNuGet }}', 'true'))
     displayName: 'NuGet Authenticate'
+    inputs:
+      nuGetServiceConnections: NuGet.org
 
   - task: NuGetCommand@2
     condition: and(succeeded(), eq('${{ parameters.publishToNuGet }}', 'true'))
     inputs:
       command: push
+      nuGetFeedType: external
       packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
-      publishVstsFeed: 'Personal-Public/personal-public-packages'
