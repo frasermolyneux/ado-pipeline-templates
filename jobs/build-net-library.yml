@@ -50,7 +50,6 @@ jobs:
     displayName: 'dotnet build $(buildConfiguration)'
 
   - task: DotNetCoreCLI@2
-    condition: and(succeeded(), eq('${{ parameters.publishArtifact }}', 'true'))
     inputs:
       command: pack
       packagesToPack: '**/${{ parameters.projectName }}.csproj'
