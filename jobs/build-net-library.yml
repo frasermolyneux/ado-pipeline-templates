@@ -57,6 +57,12 @@ jobs:
       packDestination: '$(Build.ArtifactStagingDirectory)'
       buildProperties: 'Version="${{ parameters.MajorMinorVersion }}.$(Build.BuildId)"'
 
-  - script: |
-      dotnet nuget push '$(Build.ArtifactStagingDirectory)\${{ parameters.projectName }}.${{ parameters.MajorMinorVersion }}.$(Build.BuildId).nupkg' --source https://api.nuget.org/v3/index.json --api-key $(NUGET-PUSH-KEY-1)
-    condition: and(succeeded(), eq('${{ parameters.publishToNuGet }}', 'true'))      
+  - task: DotNetCoreCLI@2
+    displayName: Push Nuget Package
+    inputs:
+      command: custom
+      custom: nuget
+      arguments: >
+        push $(Build.ArtifactStagingDirectory)\${{ parameters.projectName }}.${{ parameters.MajorMinorVersion }}.$(Build.BuildId).nupkg
+        -s https://api.nuget.org/v3/index.json
+        -k $(NUGET-PUSH-KEY-1)
