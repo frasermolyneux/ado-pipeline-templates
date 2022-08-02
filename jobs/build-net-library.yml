@@ -5,13 +5,13 @@ parameters:
 - name: dependsOn
   type: object
   default: []
-- name: publishToNuGet
+- name: publishArtifact
   type: boolean
   default: false
 - name: projectName
   type: string
   default: 'library'
-- name: MajorMinorVersion
+- name: majorMinorVersion
   type: string
   default: '1.0'
 - name: nugetConfigPath
@@ -50,19 +50,14 @@ jobs:
     displayName: 'dotnet build $(buildConfiguration)'
 
   - task: DotNetCoreCLI@2
-    condition: and(succeeded(), eq('${{ parameters.publishToNuGet }}', 'true'))
+    condition: and(succeeded(), eq('${{ parameters.publishArtifact }}', 'true'))
     inputs:
       command: pack
       packagesToPack: '**/${{ parameters.projectName }}.csproj'
       packDestination: '$(Build.ArtifactStagingDirectory)'
       buildProperties: 'Version="${{ parameters.MajorMinorVersion }}.$(Build.BuildId)"'
 
-  - task: DotNetCoreCLI@2
-    displayName: Push Nuget Package
-    inputs:
-      command: custom
-      custom: nuget
-      arguments: >
-        push $(Build.ArtifactStagingDirectory)\${{ parameters.projectName }}.${{ parameters.MajorMinorVersion }}.$(Build.BuildId).nupkg
-        -s https://api.nuget.org/v3/index.json
-        -k $(NUGET-PUSH-KEY-1)
+  - publish: '$(Build.artifactStagingDirectory)/${{ parameters.projectName }}.zip'
+    condition: and(succeeded(), eq('${{ parameters.publishArtifact }}', 'true'))
+    displayName: Publish ${{ parameters.projectName }} artifact
+    artifact: ${{ parameters.projectName }}
