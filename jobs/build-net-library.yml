@@ -56,7 +56,7 @@ jobs:
       packDestination: '$(Build.ArtifactStagingDirectory)'
       buildProperties: 'Version="${{ parameters.MajorMinorVersion }}.$(Build.BuildId)"'
 
-  - publish: '$(Build.artifactStagingDirectory)/*.nupkg'
+  - publish: $(Build.artifactStagingDirectory)
     condition: and(succeeded(), eq('${{ parameters.publishArtifact }}', 'true'))
     displayName: Publish ${{ parameters.projectName }} artifact
     artifact: ${{ parameters.projectName }}
