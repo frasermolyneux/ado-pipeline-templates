@@ -11,6 +11,11 @@ parameters:
 - name: projectName
   type: string
   default: 'library'
+- name: majorMinorVersion
+  type: string
+  default: '1.0'
+- name: packageName
+  type: string
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -30,6 +35,6 @@ jobs:
         command: custom
         custom: nuget
         arguments: >
-          push $(Pipeline.Workspace)/${{ parameters.projectName }}/*.nupkg
+          push $(Pipeline.Workspace)/${{ parameters.projectName }}/${{ parameters.packageName }}.${{ parameters.MajorMinorVersion }}.$(Build.BuildId).nupkg
           -s https://api.nuget.org/v3/index.json
           -k $(NUGET-PUSH-KEY-1)
