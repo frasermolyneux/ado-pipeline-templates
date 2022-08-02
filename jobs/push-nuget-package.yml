@@ -24,12 +24,12 @@ jobs:
       displayName: 'Download ${{ parameters.projectName }} artifact'
       artifact: ${{ parameters.projectName }}
 
-  - task: DotNetCoreCLI@2
-    displayName: Push Nuget Package
-    inputs:
-      command: custom
-      custom: nuget
-      arguments: >
-        push $(Pipeline.Workspace)/${{ parameters.projectName }}/*.nupkg
-        -s https://api.nuget.org/v3/index.json
-        -k $(NUGET-PUSH-KEY-1)
+    - task: DotNetCoreCLI@2
+      displayName: Push Nuget Package
+      inputs:
+        command: custom
+        custom: nuget
+        arguments: >
+          push $(Pipeline.Workspace)/${{ parameters.projectName }}/*.nupkg
+          -s https://api.nuget.org/v3/index.json
+          -k $(NUGET-PUSH-KEY-1)
