@@ -17,6 +17,11 @@ parameters:
 - name: dotnetSdkVersion
   type: string
   default: '6.x'
+- name: toolsManifestPath
+  type: string
+- name: useCobertura
+  default: false
+  type: boolean
   
 jobs:
 - job: ${{ parameters.jobName }}
@@ -41,13 +46,24 @@ jobs:
       projects: ${{ parameters.projects }}
 
   - task: DotNetCoreCLI@2
+    condition: and(succeeded(), ne('${{ parameters.toolsManifestPath }}', ''))
     displayName: 'Install .NET tools from local manifest'
     inputs:
       command: custom
       custom: tool
-      arguments: 'restore --tool-manifest $(Build.SourcesDirectory)/.config/dotnet-tools.json'
+      arguments: 'restore --tool-manifest ${{ parameters.toolsManifestPath }}'
 
   - task: DotNetCoreCLI@2
+    condition: and(succeeded(), eq('${{ parameters.useCobertura }}', 'false'))
+    displayName: 'Run unit tests - ${{ parameters.projectsTests }} - ${{ parameters.buildConfiguration }}'
+    inputs:
+      command: 'test'
+      arguments: '--no-build --configuration ${{ parameters.buildConfiguration }}'
+      publishTestResults: true
+      projects: ${{ parameters.projectsTests }}
+
+  - task: DotNetCoreCLI@2
+    condition: and(succeeded(), eq('${{ parameters.useCobertura }}', 'true'))
     displayName: 'Run unit tests - ${{ parameters.projectsTests }} - ${{ parameters.buildConfiguration }}'
     inputs:
       command: 'test'
@@ -56,6 +72,7 @@ jobs:
       projects: ${{ parameters.projectsTests }}
 
   - task: DotNetCoreCLI@2
+    condition: and(succeeded(), eq('${{ parameters.useCobertura }}', 'true'))
     displayName: 'Create code coverage report'
     inputs:
       command: custom
@@ -63,6 +80,7 @@ jobs:
       arguments: 'run reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage -reporttypes:HtmlInline_AzurePipelines'
 
   - task: PublishCodeCoverageResults@1
+    condition: and(succeeded(), eq('${{ parameters.useCobertura }}', 'true'))
     displayName: 'Publish code coverage report'
     inputs:
       codeCoverageTool: 'cobertura'
