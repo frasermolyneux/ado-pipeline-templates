@@ -55,7 +55,7 @@ jobs:
 
   - task: DotNetCoreCLI@2
     condition: and(succeeded(), eq('${{ parameters.useCobertura }}', 'false'))
-    displayName: 'Run unit tests - ${{ parameters.projectsTests }} - ${{ parameters.buildConfiguration }}'
+    displayName: 'Run unit tests - ${{ parameters.projectsTests }}'
     inputs:
       command: 'test'
       arguments: '--no-build --configuration ${{ parameters.buildConfiguration }}'
@@ -64,7 +64,7 @@ jobs:
 
   - task: DotNetCoreCLI@2
     condition: and(succeeded(), eq('${{ parameters.useCobertura }}', 'true'))
-    displayName: 'Run unit tests - ${{ parameters.projectsTests }} - ${{ parameters.buildConfiguration }}'
+    displayName: 'Run unit tests with code coverage - ${{ parameters.projectsTests }}'
     inputs:
       command: 'test'
       arguments: '--no-build --configuration ${{ parameters.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
