@@ -40,8 +40,6 @@ jobs:
       arguments: '--no-restore --configuration ${{ parameters.buildConfiguration }}'
       projects: ${{ parameters.projects }}
 
-
-
   - task: DotNetCoreCLI@2
     displayName: 'Install .NET tools from local manifest'
     inputs:
