@@ -45,7 +45,7 @@ jobs:
     inputs:
       command: custom
       custom: tool
-      arguments: 'restore --tool-manifest $(Build.SourcesDirectory)/src/.config/dotnet-tools.json'
+      arguments: 'restore --tool-manifest $(Build.SourcesDirectory)/.config/dotnet-tools.json'
 
   - task: DotNetCoreCLI@2
     displayName: 'Run unit tests - ${{ parameters.projectsTests }} - ${{ parameters.buildConfiguration }}'
