@@ -51,7 +51,7 @@ jobs:
       arguments: '--no-restore --configuration ${{ parameters.buildConfiguration }}'
       projects: ${{ parameters.projects }}
 
-  - ${{ each step in parameters.additionalProjectSteps }}:
+  - ${{ each step in parameters.additionalBuildSteps }}:
     - ${{ step }}
 
   - task: DotNetCoreCLI@2
