@@ -1,0 +1,35 @@
+parameters:
+- name: jobName
+  type: string
+  default: PushNuGetPackages
+- name: dependsOn
+  type: object
+  default: []
+- name: variableGroupName
+  type: string
+  default: 'NuGet.org'
+- name: artifactName
+  type: string
+  default: 'library'
+
+jobs:
+- job: ${{ parameters.jobName }}
+  dependsOn: ${{ parameters.dependsOn }}
+
+  variables:
+  - group: ${{ parameters.variableGroupName }}
+
+  steps:
+    - download: current
+      displayName: 'Download ${{ parameters.artifactName }} artifact'
+      artifact: ${{ parameters.artifactName }}
+
+    - task: DotNetCoreCLI@2
+      displayName: Push Nuget Packages
+      inputs:
+        command: custom
+        custom: nuget
+        arguments: >
+          push $(Pipeline.Workspace)/*.nupkg
+          -s https://api.nuget.org/v3/index.json
+          -k $(NUGET-PUSH-KEY-1)
