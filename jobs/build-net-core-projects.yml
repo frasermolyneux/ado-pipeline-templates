@@ -95,5 +95,5 @@ jobs:
       codeCoverageTool: 'cobertura'
       summaryFileLocation: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml'
 
-  - ${{ each step in parameters.additionalProjectSteps }}:
+  - ${{ each step in parameters.additionalPublishSteps }}:
     - ${{ step }}
