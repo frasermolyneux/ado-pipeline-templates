@@ -33,6 +33,6 @@ jobs:
         command: custom
         custom: nuget
         arguments: >
-          push $(Pipeline.Workspace)/${{ parameters.artifactName }}/*.nupkg
+          push '$(Pipeline.Workspace)/${{ parameters.artifactName }}/*.nupkg'
           -s https://api.nuget.org/v3/index.json
           -k $(NUGET-PUSH-KEY-1)
