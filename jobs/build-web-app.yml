@@ -15,10 +15,12 @@ parameters:
   type: string
   default: ''
 
-
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.dependsOn }}
+
+  workspace:
+    clean: all
 
   variables:
     buildConfiguration: 'Release'

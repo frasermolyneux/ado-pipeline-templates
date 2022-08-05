@@ -22,6 +22,9 @@ jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.dependsOn }}
 
+  workspace:
+    clean: all
+
   variables:
   - group: NuGet.org
   - name: buildConfiguration

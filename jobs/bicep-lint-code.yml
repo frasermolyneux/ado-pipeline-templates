@@ -15,6 +15,9 @@ jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.dependsOn }}
 
+  workspace:
+    clean: all
+
   steps:
     - task: AzureCLI@2
       name: RunBicepBuild

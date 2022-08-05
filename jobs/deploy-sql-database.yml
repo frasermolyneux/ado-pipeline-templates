@@ -23,6 +23,9 @@ jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.dependsOn }}
 
+  workspace:
+    clean: all
+
   pool:
     vmImage: ${{ parameters.vmImage }}
   

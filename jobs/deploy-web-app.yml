@@ -24,6 +24,9 @@ jobs:
   dependsOn: ${{ parameters.dependsOn }}
   environment: ${{ parameters.environment }}
 
+  workspace:
+    clean: all
+
   strategy:
     runOnce:
       deploy:
