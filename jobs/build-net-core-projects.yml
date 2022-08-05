@@ -22,7 +22,13 @@ parameters:
 - name: useCobertura
   default: false
   type: boolean
-  
+- name: additionalBuildSteps
+  type: stepList
+  default: []
+- name: additionalPublishSteps
+  type: stepList
+  default: []
+
 jobs:
 - job: ${{ parameters.jobName }}
 
@@ -44,6 +50,9 @@ jobs:
       command: 'build'
       arguments: '--no-restore --configuration ${{ parameters.buildConfiguration }}'
       projects: ${{ parameters.projects }}
+
+  - ${{ each step in parameters.additionalProjectSteps }}:
+    - ${{ step }}
 
   - task: DotNetCoreCLI@2
     condition: and(succeeded(), ne('${{ parameters.toolsManifestPath }}', ''))
@@ -85,3 +94,6 @@ jobs:
     inputs:
       codeCoverageTool: 'cobertura'
       summaryFileLocation: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml'
+
+  - ${{ each step in parameters.additionalProjectSteps }}:
+    - ${{ step }}
