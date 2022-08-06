@@ -27,12 +27,7 @@ jobs:
       displayName: 'Download ${{ parameters.artifactName }} artifact'
       artifact: ${{ parameters.artifactName }}
 
-    - task: DotNetCoreCLI@2
-      displayName: Push Nuget Packages
-      inputs:
-        command: custom
-        custom: nuget
-        arguments: >
-          push '$(Pipeline.Workspace)/${{ parameters.artifactName }}/*.nupkg'
-          -s https://api.nuget.org/v3/index.json
-          -k $(NUGET-PUSH-KEY-1)
+    - pwsh: |
+        Get-ChildItem '$(Pipeline.Workspace)/${{ parameters.artifactName }}/*.nupkg' | ForEach-Object {
+          dotnet nuget push $_.FullName -s https://api.nuget.org/v3/index.json -k $(NUGET-PUSH-KEY-1)
+        }
