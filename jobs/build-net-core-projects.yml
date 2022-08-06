@@ -19,6 +19,7 @@ parameters:
   default: '6.x'
 - name: toolsManifestPath
   type: string
+  default: ''
 - name: useCobertura
   default: false
   type: boolean
