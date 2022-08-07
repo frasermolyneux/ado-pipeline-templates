@@ -1,10 +1,12 @@
 # Azure DevOps Pipeline Templates
 
+## Overview
+
 This repository holds a set of common pipeline templates that can be used in remote pipelines. They may be changed at any time so if you do want to use them suggest forking or pulling them into your own template repository.
 
 ---
 
-## Example Usage
+## Solution
 
 The resource needs to be included in the AzDo pipeline:
 
@@ -32,3 +34,15 @@ The templates can then be used as such:
       varFile: '$(varFile)'
       additionalCommandOptions: '-var="b2c_tenant_client_id=$(client-id)" -var="b2c_tenant_client_secret=$(client-secret)"'
 ```
+
+---
+
+## Contributing
+
+Please read the [contributing](CONTRIBUTING.md) guidance; this is a learning and development project.
+
+---
+
+## Security
+
+Please read the [security](SECURITY.md) guidance; I am always open to security feedback through email or opening an issue.
