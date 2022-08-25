@@ -55,9 +55,6 @@ jobs:
       arguments: '--no-restore --configuration ${{ parameters.buildConfiguration }}'
       projects: ${{ parameters.projects }}
 
-  - ${{ each step in parameters.additionalBuildSteps }}:
-    - ${{ step }}
-
   - task: DotNetCoreCLI@2
     condition: and(succeeded(), ne('${{ parameters.toolsManifestPath }}', ''))
     displayName: 'Install .NET tools from local manifest'
@@ -83,6 +80,9 @@ jobs:
       arguments: '--no-build --configuration ${{ parameters.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
       publishTestResults: true
       projects: ${{ parameters.projectsTests }}
+
+  - ${{ each step in parameters.additionalBuildSteps }}:
+    - ${{ step }}
 
   - task: DotNetCoreCLI@2
     condition: and(succeeded(), eq('${{ parameters.useCobertura }}', 'true'))
