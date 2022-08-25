@@ -80,7 +80,7 @@ jobs:
     displayName: 'Run unit tests with code coverage - ${{ parameters.projectsTests }}'
     inputs:
       command: 'test'
-      arguments: '--no-build --configuration ${{ parameters.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
+      arguments: '--no-build --configuration ${{ parameters.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
       publishTestResults: true
       projects: ${{ parameters.projectsTests }}
 
