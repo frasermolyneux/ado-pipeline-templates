@@ -17,6 +17,9 @@ parameters:
 - name: blueGreenDeploy
   type: boolean
   default: false
+- name: retryCountOnTaskFailure
+  type: number
+  default: 3
 - name: subscription
 
 jobs:
@@ -40,6 +43,7 @@ jobs:
           - ${{ if eq(parameters.blueGreenDeploy, false) }}:
             - task: AzureRmWebAppDeployment@4
               displayName: 'Azure App Service Deploy: ${{ parameters.projectName }}'
+              retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
               inputs:
                 azureSubscription: '${{ parameters.subscription }}'
                 webAppName: '${{ parameters.webAppName }}'
@@ -49,6 +53,7 @@ jobs:
           - ${{ if eq(parameters.blueGreenDeploy, true) }}:
             - task: AzureRmWebAppDeployment@4
               displayName: 'Azure App Service Deploy: ${{ parameters.projectName }}'
+              retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
               inputs:
                 azureSubscription: '${{ parameters.subscription }}'
                 WebAppName: '${{ parameters.webAppName }}'
@@ -59,6 +64,7 @@ jobs:
 
           - ${{ if eq(parameters.blueGreenDeploy, true) }}:
             - task: AzureAppServiceManage@0
+              retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
               inputs:
                 azureSubscription: '${{ parameters.subscription }}'
                 webAppName: '${{ parameters.webAppName }}'
