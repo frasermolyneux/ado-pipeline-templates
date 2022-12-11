@@ -29,6 +29,7 @@ jobs:
           $files = Get-ChildItem '${{ parameters.bicepDirectory }}/*.bicep'
 
           foreach ($file in $files) {
-            Write-Host "Running az bicep build for '$($file.FullName)'"
+            Write-Host "Running az bicep restore and build for '$($file.FullName)'"
+            az bicep restore --file $file.FullName --force
             az bicep build --file $file.FullName --stdout
           }
