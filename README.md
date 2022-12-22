@@ -46,3 +46,13 @@ Please read the [contributing](CONTRIBUTING.md) guidance; this is a learning and
 ## Security
 
 Please read the [security](SECURITY.md) guidance; I am always open to security feedback through email or opening an issue.
+
+---
+
+## NuGet.org Package Publishing
+
+For the next time this doesn't work and I get confused as to why.
+
+* `push-nuget-package.yml` and `push-nuget-packages.yml` use a variable group called `NuGet.org` with the following variables:
+  * `NUGET-PUSH-KEY-1`
+* The variable group is associated with the `kv-mx-nuget-prd-uksouth` Key Vault in the `strategic-prd` subscription
