@@ -40,4 +40,4 @@ jobs:
         arguments: >
           push $(Pipeline.Workspace)/${{ parameters.projectName }}/${{ parameters.packageName }}.${{ parameters.MajorMinorVersion }}.$(Build.BuildId).nupkg
           -s https://api.nuget.org/v3/index.json
-          -k $(NUGET-PUSH-KEY-1)
+          -k $(nuget-token)
