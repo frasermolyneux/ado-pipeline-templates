@@ -29,5 +29,5 @@ jobs:
 
     - pwsh: |
         Get-ChildItem "$(Pipeline.Workspace)/${{ parameters.artifactName }}/*.nupkg" | ForEach-Object {
-          dotnet nuget push $_.FullName -s https://api.nuget.org/v3/index.json -k $(NUGET-PUSH-KEY-1)
+          dotnet nuget push $_.FullName -s https://api.nuget.org/v3/index.json -k $(nuget-token)
         }
