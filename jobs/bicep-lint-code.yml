@@ -1,50 +1,56 @@
 parameters:
-- name: jobName
-  type: string
-  default: BicepLintCode
-- name: dependsOn
-  type: object
-  default: []
-- name: azureSubscription
-  type: string
-- name: bicepDirectory
-  type: string
-  default: '$(Build.sourcesDirectory)/bicep'
+  - name: jobName
+    type: string
+    default: BicepLintCode
+  - name: dependsOn
+    type: object
+    default: []
+  - name: azureSubscription
+    type: string
+  - name: bicepDirectory
+    type: string
+    default: "$(Build.sourcesDirectory)/bicep"
 
 jobs:
-- job: ${{ parameters.jobName }}
-  dependsOn: ${{ parameters.dependsOn }}
+  - job: ${{ parameters.jobName }}
+    dependsOn: ${{ parameters.dependsOn }}
 
-  workspace:
-    clean: all
+    workspace:
+      clean: all
 
-  steps:
-    - task: AzureCLI@2
-      name: RunBicepBuild
-      inputs:
-        azureSubscription: ${{ parameters.azureSubscription }}
-        scriptType: 'pscore'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          $files = Get-ChildItem '${{ parameters.bicepDirectory }}/*.bicep' -Recurse
-          foreach ($file in $files) {
-            Write-Host "Running az bicep restore and build for '$($file.FullName)'"
-            az bicep restore --file $file.FullName --force
-            az bicep build --file $file.FullName
-          }
+    steps:
+      - task: ps-rule-install@2
+        inputs:
+          module: PSRule.Rules.Azure
 
-    - task: ps-rule-assert@2
-      displayName: Analyze Azure template files
-      inputs:
-        modules: 'PSRule.Rules.Azure,PSRule.Rules.CAF'
-        outputFormat: NUnit3                   
-        outputPath: reports/ps-rule-results.xml 
+      - task: ps-rule-install@2
+        inputs:
+          module: PSRule.Rules.CAF
 
-    - task: PublishTestResults@2
-      displayName: 'Publish PSRule results'
-      inputs:
-        testRunTitle: 'PSRule'                        
-        testRunner: NUnit                               
-        testResultsFiles: 'reports/ps-rule-results.xml'
+      - task: AzureCLI@2
+        name: RunBicepBuild
+        inputs:
+          azureSubscription: ${{ parameters.azureSubscription }}
+          scriptType: "pscore"
+          scriptLocation: "inlineScript"
+          inlineScript: |
+            $files = Get-ChildItem '${{ parameters.bicepDirectory }}/*.bicep' -Recurse
+            foreach ($file in $files) {
+              Write-Host "Running az bicep restore and build for '$($file.FullName)'"
+              az bicep restore --file $file.FullName --force
+              az bicep build --file $file.FullName
+            }
 
+      - task: ps-rule-assert@2
+        displayName: Analyze Azure template files
+        inputs:
+          modules: "PSRule.Rules.Azure,PSRule.Rules.CAF"
+          outputFormat: NUnit3
+          outputPath: reports/ps-rule-results.xml
 
+      - task: PublishTestResults@2
+        displayName: "Publish PSRule results"
+        inputs:
+          testRunTitle: "PSRule"
+          testRunner: NUnit
+          testResultsFiles: "reports/ps-rule-results.xml"
