@@ -26,10 +26,25 @@ jobs:
         scriptType: 'pscore'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          $files = Get-ChildItem '${{ parameters.bicepDirectory }}/*.bicep'
-
+          $files = Get-ChildItem '${{ parameters.bicepDirectory }}/*.bicep' -Recurse
           foreach ($file in $files) {
             Write-Host "Running az bicep restore and build for '$($file.FullName)'"
             az bicep restore --file $file.FullName --force
-            az bicep build --file $file.FullName --stdout
+            az bicep build --file $file.FullName
           }
+
+    - task: ps-rule-assert@2
+      displayName: Analyze Azure template files
+      inputs:
+        modules: 'PSRule.Rules.Azure,PSRule.Rules.CAF'
+        outputFormat: NUnit3                   
+        outputPath: reports/ps-rule-results.xml 
+
+    - task: PublishTestResults@2
+      displayName: 'Publish PSRule results'
+      inputs:
+        testRunTitle: 'PSRule'                        
+        testRunner: NUnit                               
+        testResultsFiles: 'reports/ps-rule-results.xml'
+
+
