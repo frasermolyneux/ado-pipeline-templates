@@ -39,8 +39,8 @@ jobs:
             $files = Get-ChildItem '${{ parameters.bicepDirectory }}/*.bicep' -Recurse
             foreach ($file in $files) {
               Write-Host "Running az bicep restore and build for '$($file.FullName)'"
-              bicep restore -f $file.FullName --force
-              bicep build -f $file.FullName
+              bicep restore $file.FullName --force
+              bicep build $file.FullName
             }
 
       - task: ps-rule-assert@2
