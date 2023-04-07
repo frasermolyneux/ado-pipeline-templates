@@ -46,6 +46,7 @@ jobs:
       - task: ps-rule-assert@2
         displayName: Analyze Azure template files
         inputs:
+          inputType: inputPath
           inputPath: ${{ parameters.bicepDirectory }}
           outputFormat: NUnit3
           outputPath: reports/ps-rule-results.xml
