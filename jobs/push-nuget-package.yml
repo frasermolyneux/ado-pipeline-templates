@@ -7,7 +7,7 @@ parameters:
   default: []
 - name: variableGroupName
   type: string
-  default: 'NuGet.org'
+  default: 'NuGet'
 - name: projectName
   type: string
   default: 'library'
