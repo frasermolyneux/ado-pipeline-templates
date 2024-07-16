@@ -41,10 +41,9 @@ steps:
       terraformVersion: ${{ parameters.terraformVersion }}
 
   - pwsh: |
-      $env:ARM_USE_OIDC = $true
-
-  - pwsh: |
       cd ${{ parameters.terraformFolder }}
+
+      $env:ARM_USE_OIDC = $true
         
       if ("${{ parameters.terraformBackendFile }}" -ne "") {
         terraform init -backend-config="${{ parameters.terraformBackendFile }}" -var-file="${{ parameters.terraformVarFile }}"
