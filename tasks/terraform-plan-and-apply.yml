@@ -9,10 +9,13 @@ parameters:
   type: string
 - name: backendSubscriptionId
   type: string
+  default: ""
 - name: backendResourceGroupName
   type: string
+  default: ""
 - name: backendStorageAccountName
   type: string
+  default: ""
 - name: backendContainerName
   default: "tfstate"
   type: string
