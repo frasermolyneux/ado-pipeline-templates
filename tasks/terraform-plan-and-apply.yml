@@ -1,0 +1,69 @@
+parameters:
+- name: terraform-folder
+  default: "terraform"
+  type: string
+- name: terraform-var-file
+  default: "tfvars/dev.tfvars"
+  type: string
+- name: terraform-backend-file
+  type: string
+- name: backend-subscription-id
+  type: string
+- name: backend-resource-group-name
+  type: string
+- name: backend-storage-account-name
+  type: string
+- name: backend-container-name
+  default: "tfstate"
+  type: string
+- name: backend-key
+  default: "terraform.tfstate"
+  type: string
+- name: backend-tags
+  default: ""
+  type: string
+- name: terraform-version
+  default: latest
+- name: AZURE_CLIENT_ID
+  type: string
+- name: AZURE_TENANT_ID
+  type: string
+- name: AZURE_SUBSCRIPTION_ID
+  type: string
+
+steps:
+  - task: TerraformInstaller@0
+    displayName: 'Terraform: Install'
+    inputs:
+      terraformVersion: ${{ parameters.terraform-version }}
+
+  - pwsh: |
+      Write-Host "##vso[task.setvariable variable=AZURE_CLIENT_ID;]${{ parameters.AZURE_CLIENT_ID }}"
+      Write-Host "##vso[task.setvariable variable=AZURE_TENANT_ID;]${{ parameters.AZURE_TENANT_ID }}"
+      Write-Host "##vso[task.setvariable variable=AZURE_SUBSCRIPTION_ID;]${{ parameters.AZURE_SUBSCRIPTION_ID }}"
+      Write-Host "##vso[task.setvariable variable=ARM_USE_OIDC;]true"
+
+  - pwsh:
+    script: |
+      cd ${{ parameters.terraform-folder }}
+        
+      if ("${{ parameters.terraform-backend-file }}" -ne "") {
+        terraform init -backend-config="${{ parameters.terraform-backend-file }}" -var-file="${{ parameters.terraform-var-file }}"
+      } else {
+        terraform init -backend-config="subscription_id=${{ parameters.backend-subscription-id }}" -backend-config="resource_group_name=${{ parameters.backend-resource-group-name }}" -backend-config="storage_account_name=${{ parameters.backend-storage-account-name }}" -backend-config="container_name=${{ parameters.backend-container-name }}" -backend-config="key=${{ parameters.backend-key }}" -var-file="${{ parameters.terraform-var-file }}"
+      }
+    
+  - pwsh: Terraform Validate
+    script: |
+      cd ${{ parameters.terraform-folder }}
+      terraform validate
+
+  - pwsh: Terraform Plan
+    script: |
+      cd ${{ parameters.terraform-folder }}
+      terraform plan -var-file=${{ parameters.terraform-var-file }}
+
+  - pwsh: Terraform Apply
+    script: |
+      cd ${{ parameters.terraform-folder }}
+      terraform apply -auto-approve -var-file=${{ parameters.terraform-var-file }}
