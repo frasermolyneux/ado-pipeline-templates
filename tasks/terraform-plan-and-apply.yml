@@ -1,28 +1,28 @@
 parameters:
-- name: terraform-folder
+- name: terraformFolder
   default: "terraform"
   type: string
-- name: terraform-var-file
+- name: terraformVarFile
   default: "tfvars/dev.tfvars"
   type: string
-- name: terraform-backend-file
+- name: terraformBackendFile
   type: string
-- name: backend-subscription-id
+- name: backendSubscriptionId
   type: string
-- name: backend-resource-group-name
+- name: backendResourceGroupName
   type: string
-- name: backend-storage-account-name
+- name: backendStorageAccountName
   type: string
-- name: backend-container-name
+- name: backendContainerName
   default: "tfstate"
   type: string
-- name: backend-key
+- name: backendKey
   default: "terraform.tfstate"
   type: string
-- name: backend-tags
+- name: backendTags
   default: ""
   type: string
-- name: terraform-version
+- name: terraformVersion
   default: latest
 - name: AZURE_CLIENT_ID
   type: string
@@ -35,7 +35,7 @@ steps:
   - task: TerraformInstaller@1
     displayName: 'Terraform: Install'
     inputs:
-      terraformVersion: ${{ parameters.terraform-version }}
+      terraformVersion: ${{ parameters.terraformVersion }}
 
   - pwsh: |
       Write-Host "##vso[task.setvariable variable=AZURE_CLIENT_ID;]${{ parameters.AZURE_CLIENT_ID }}"
@@ -44,22 +44,22 @@ steps:
       Write-Host "##vso[task.setvariable variable=ARM_USE_OIDC;]true"
 
   - pwsh: |
-      cd ${{ parameters.terraform-folder }}
+      cd ${{ parameters.terraformFolder }}
         
-      if ("${{ parameters.terraform-backend-file }}" -ne "") {
-        terraform init -backend-config="${{ parameters.terraform-backend-file }}" -var-file="${{ parameters.terraform-var-file }}"
+      if ("${{ parameters.terraformBackendFile }}" -ne "") {
+        terraform init -backend-config="${{ parameters.terraformBackendFile }}" -var-file="${{ parameters.terraformVarFile }}"
       } else {
-        terraform init -backend-config="subscription_id=${{ parameters.backend-subscription-id }}" -backend-config="resource_group_name=${{ parameters.backend-resource-group-name }}" -backend-config="storage_account_name=${{ parameters.backend-storage-account-name }}" -backend-config="container_name=${{ parameters.backend-container-name }}" -backend-config="key=${{ parameters.backend-key }}" -var-file="${{ parameters.terraform-var-file }}"
+        terraform init -backend-config="subscription_id=${{ parameters.backendSubscriptionId }}" -backend-config="resource_group_name=${{ parameters.backendResourceGroupName }}" -backend-config="storage_account_name=${{ parameters.backendStorageAccountName }}" -backend-config="container_name=${{ parameters.backendContainerName }}" -backend-config="key=${{ parameters.backendKey }}" -var-file="${{ parameters.terraformVarFile }}"
       }
     
   - pwsh: |
-      cd ${{ parameters.terraform-folder }}
+      cd ${{ parameters.terraformFolder }}
       terraform validate
 
   - pwsh: |
-      cd ${{ parameters.terraform-folder }}
-      terraform plan -var-file=${{ parameters.terraform-var-file }}
+      cd ${{ parameters.terraformFolder }}
+      terraform plan -var-file=${{ parameters.terraformVarFile }}
 
   - pwsh: |
-      cd ${{ parameters.terraform-folder }}
-      terraform apply -auto-approve -var-file=${{ parameters.terraform-var-file }}
+      cd ${{ parameters.terraformFolder }}
+      terraform apply -auto-approve -var-file=${{ parameters.terraformVarFile }}
