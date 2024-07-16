@@ -43,8 +43,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=AZURE_SUBSCRIPTION_ID;]${{ parameters.AZURE_SUBSCRIPTION_ID }}"
       Write-Host "##vso[task.setvariable variable=ARM_USE_OIDC;]true"
 
-  - pwsh:
-    script: |
+  - pwsh: |
       cd ${{ parameters.terraform-folder }}
         
       if ("${{ parameters.terraform-backend-file }}" -ne "") {
@@ -53,17 +52,14 @@ steps:
         terraform init -backend-config="subscription_id=${{ parameters.backend-subscription-id }}" -backend-config="resource_group_name=${{ parameters.backend-resource-group-name }}" -backend-config="storage_account_name=${{ parameters.backend-storage-account-name }}" -backend-config="container_name=${{ parameters.backend-container-name }}" -backend-config="key=${{ parameters.backend-key }}" -var-file="${{ parameters.terraform-var-file }}"
       }
     
-  - pwsh: Terraform Validate
-    script: |
+  - pwsh: |
       cd ${{ parameters.terraform-folder }}
       terraform validate
 
-  - pwsh: Terraform Plan
-    script: |
+  - pwsh: |
       cd ${{ parameters.terraform-folder }}
       terraform plan -var-file=${{ parameters.terraform-var-file }}
 
-  - pwsh: Terraform Apply
-    script: |
+  - pwsh: |
       cd ${{ parameters.terraform-folder }}
       terraform apply -auto-approve -var-file=${{ parameters.terraform-var-file }}
