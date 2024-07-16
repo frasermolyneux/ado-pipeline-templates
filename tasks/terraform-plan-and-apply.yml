@@ -32,7 +32,7 @@ parameters:
   type: string
 
 steps:
-  - task: TerraformInstaller@0
+  - task: TerraformInstaller@1
     displayName: 'Terraform: Install'
     inputs:
       terraformVersion: ${{ parameters.terraform-version }}
