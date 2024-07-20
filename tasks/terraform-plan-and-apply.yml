@@ -48,6 +48,11 @@ steps:
 
   - pwsh: |
       cd ${{ parameters.terraformFolder }}
+
+      Write-Host $env:ARM_USE_OIDC
+      Write-Host $env:ARM_CLIENT_ID
+      Write-Host $env:ARM_TENANT_ID
+      Write-Host $env:ARM_SUBSCRIPTION_ID
  
       if ("${{ parameters.terraformBackendFile }}" -ne "") {
         terraform init -backend-config="${{ parameters.terraformBackendFile }}" -var-file="${{ parameters.terraformVarFile }}"
