@@ -34,21 +34,17 @@ parameters:
 - name: AZURE_SUBSCRIPTION_ID
   type: string
 
+variables: 
+  ARM_USE_OIDC: true
+  ARM_CLIENT_ID: ${{ parameters.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ parameters.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ parameters.AZURE_SUBSCRIPTION_ID }}
+
 steps:
   - task: TerraformInstaller@1
     displayName: 'Terraform: Install'
     inputs:
       terraformVersion: ${{ parameters.terraformVersion }}
-
-  - pwsh: |
-      $env:ARM_USE_OIDC = $true
-      $env:ARM_CLIENT_ID = "${{ parameters.AZURE_CLIENT_ID }}"
-      $env:ARM_TENANT_ID = "${{ parameters.AZURE_TENANT_ID }}"
-      $env:ARM_SUBSCRIPTION_ID = "${{ parameters.AZURE_SUBSCRIPTION_ID }}"
-
-      Write-Host "Setting ARM_CLIENT_ID to ${{ parameters.AZURE_CLIENT_ID }}"
-      Write-Host "Setting ARM_TENANT_ID to ${{ parameters.AZURE_TENANT_ID }}"
-      Write-Host "Setting ARM_SUBSCRIPTION_ID to ${{ parameters.AZURE_SUBSCRIPTION_ID }}"
 
   - pwsh: |
       cd ${{ parameters.terraformFolder }}
