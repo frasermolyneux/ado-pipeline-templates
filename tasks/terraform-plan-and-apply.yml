@@ -49,10 +49,10 @@ steps:
   - pwsh: |
       cd ${{ parameters.terraformFolder }}
 
-      Write-Host "ARM_USE_OIDC: $($env:ARM_USE_OIDC)"
-      Write-Host "ARM_CLIENT_ID: $($env:ARM_CLIENT_ID)"
-      Write-Host "ARM_TENANT_ID: $($env:ARM_TENANT_ID)"
-      Write-Host "ARM_SUBSCRIPTION_ID: $($env:ARM_SUBSCRIPTION_ID)"
+      Write-Host "ARM_USE_OIDC: $(ARM_USE_OIDC)"
+      Write-Host "ARM_CLIENT_ID: $(ARM_CLIENT_ID)"
+      Write-Host "ARM_TENANT_ID: $(ARM_TENANT_ID)"
+      Write-Host "ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)"
  
       if ("${{ parameters.terraformBackendFile }}" -ne "") {
         terraform init -backend-config="${{ parameters.terraformBackendFile }}" -var-file="${{ parameters.terraformVarFile }}"
