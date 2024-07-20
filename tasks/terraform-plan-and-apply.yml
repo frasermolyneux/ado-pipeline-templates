@@ -41,7 +41,7 @@ steps:
       terraformVersion: ${{ parameters.terraformVersion }}
 
   - pwsh: |
-      az login
+      az login --service-principal --username ${{ parameters.AZURE_CLIENT_ID }} --tenant ${{ parameters.AZURE_TENANT_ID }} --allow-no-subscriptions
     env:
       ARM_CLIENT_ID: ${{ parameters.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ parameters.AZURE_TENANT_ID }}
