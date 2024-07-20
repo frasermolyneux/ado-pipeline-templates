@@ -41,10 +41,14 @@ steps:
       terraformVersion: ${{ parameters.terraformVersion }}
 
   - pwsh: |
-      cd ${{ parameters.terraformFolder }}
-
       $env:ARM_USE_OIDC = $true
-        
+      $env:ARM_CLIENT_ID = ${{ parameters.AZURE_CLIENT_ID }}
+      $env:ARM_TENANT_ID = ${{ parameters.AZURE_TENANT_ID }}
+      $env:ARM_SUBSCRIPTION_ID = ${{ parameters.AZURE_SUBSCRIPTION_ID }}
+
+  - pwsh: |
+      cd ${{ parameters.terraformFolder }}
+ 
       if ("${{ parameters.terraformBackendFile }}" -ne "") {
         terraform init -backend-config="${{ parameters.terraformBackendFile }}" -var-file="${{ parameters.terraformVarFile }}"
       } else {
