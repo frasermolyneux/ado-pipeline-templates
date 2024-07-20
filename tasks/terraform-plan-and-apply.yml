@@ -46,13 +46,17 @@ steps:
       $env:ARM_TENANT_ID = "${{ parameters.AZURE_TENANT_ID }}"
       $env:ARM_SUBSCRIPTION_ID = "${{ parameters.AZURE_SUBSCRIPTION_ID }}"
 
+      Write-Host "Setting ARM_CLIENT_ID to ${{ parameters.AZURE_CLIENT_ID }}"
+      Write-Host "Setting ARM_TENANT_ID to ${{ parameters.ARM_TENANT_ID }}"
+      Write-Host "Setting AZURE_SUBSCRIPTION_ID to ${{ parameters.AZURE_SUBSCRIPTION_ID }}"
+
   - pwsh: |
       cd ${{ parameters.terraformFolder }}
 
-      Write-Host $env:ARM_USE_OIDC
-      Write-Host $env:ARM_CLIENT_ID
-      Write-Host $env:ARM_TENANT_ID
-      Write-Host $env:ARM_SUBSCRIPTION_ID
+      Write-Host "ARM_USE_OIDC: $($env:ARM_USE_OIDC)"
+      Write-Host "AZURE_CLIENT_ID: $($env:AZURE_CLIENT_ID)"
+      Write-Host "AZURE_TENANT_ID: $($env:AZURE_TENANT_ID)"
+      Write-Host "ARM_SUBSCRIPTION_ID: $($env:ARM_SUBSCRIPTION_ID)"
  
       if ("${{ parameters.terraformBackendFile }}" -ne "") {
         terraform init -backend-config="${{ parameters.terraformBackendFile }}" -var-file="${{ parameters.terraformVarFile }}"
