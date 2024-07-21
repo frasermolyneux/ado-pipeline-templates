@@ -49,7 +49,7 @@ steps:
       provider: 'azurerm'
       command: 'validate'
       workingDirectory: '${{ parameters.terraformFolder }}'
-      backendServiceArm: '${{ parameters.azureSubscription }}'
+      environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
 
   - task: TerraformTaskV4@4
     displayName: Terraform Init
@@ -57,5 +57,5 @@ steps:
       provider: 'azurerm'
       command: 'apply'
       workingDirectory: '${{ parameters.terraformFolder }}'
-      backendServiceArm: '${{ parameters.azureSubscription }}'
+      environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
       commandOptions: '-var-file="${{ parameters.terraformVarFile }}" -auto-approve'
