@@ -50,7 +50,6 @@ steps:
       command: 'validate'
       workingDirectory: '${{ parameters.terraformFolder }}'
       backendServiceArm: '${{ parameters.azureSubscription }}'
-      commandOptions: '-var-file="${{ parameters.terraformVarFile }}"'
 
   - task: TerraformTaskV4@4
     displayName: Terraform Init
