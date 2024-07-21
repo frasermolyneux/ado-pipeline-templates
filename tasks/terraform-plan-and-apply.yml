@@ -7,11 +7,6 @@ parameters:
 - name: terraformVarFile
   default: "tfvars/dev.tfvars"
   type: string
-- name: terraformBackendFile
-  type: string
-- name: backendSubscriptionId
-  type: string
-  default: ""
 - name: backendResourceGroupName
   type: string
   default: ""
@@ -24,17 +19,8 @@ parameters:
 - name: backendKey
   default: "terraform.tfstate"
   type: string
-- name: backendTags
-  default: ""
-  type: string
 - name: terraformVersion
   default: latest
-- name: AZURE_CLIENT_ID
-  type: string
-- name: AZURE_TENANT_ID
-  type: string
-- name: AZURE_SUBSCRIPTION_ID
-  type: string
 
 steps:
   - task: TerraformInstaller@0
@@ -49,7 +35,13 @@ steps:
       command: 'init'
       workingDirectory: '${{ parameters.terraformFolder }}'
       backendServiceArm: '${{ parameters.azureSubscription }}'
-      commandOptions: '-backend-config="${{ parameters.terraformBackendFile }}" -var-file="${{ parameters.terraformVarFile }}"'
+      backendAzureRmResourceGroupName: '${{ parameters.backendResourceGroupName }}'
+      backendAzureRmStorageAccountName: '${{ parameters.backendStorageAccountName }}'
+      backendAzureRmContainerName: '${{ parameters.backendContainerName }}'
+      backendAzureRmKey: '${{ parameters.backendKey }}'
+      backendAzureRmUseEnvironmentVariablesForAuthentication: true
+      backendAzureRmUseEntraIdForAuthentication: true
+      commandOptions: '-var-file="${{ parameters.terraformVarFile }}"'
 
   - task: TerraformTaskV4@4
     displayName: Terraform Validate
@@ -58,7 +50,7 @@ steps:
       command: 'validate'
       workingDirectory: '${{ parameters.terraformFolder }}'
       backendServiceArm: '${{ parameters.azureSubscription }}'
-      commandOptions: '-backend-config="${{ parameters.terraformBackendFile }}" -var-file="${{ parameters.terraformVarFile }}"'
+      commandOptions: '-var-file="${{ parameters.terraformVarFile }}"'
 
   - task: TerraformTaskV4@4
     displayName: Terraform Init
@@ -67,4 +59,4 @@ steps:
       command: 'apply'
       workingDirectory: '${{ parameters.terraformFolder }}'
       backendServiceArm: '${{ parameters.azureSubscription }}'
-      commandOptions: '-backend-config="${{ parameters.terraformBackendFile }}" -var-file="${{ parameters.terraformVarFile }}" -auto-approve'
+      commandOptions: '-var-file="${{ parameters.terraformVarFile }}" -auto-approve'
