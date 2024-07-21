@@ -41,7 +41,7 @@ steps:
       backendAzureRmKey: '${{ parameters.backendKey }}'
       backendAzureRmUseEnvironmentVariablesForAuthentication: true
       backendAzureRmUseEntraIdForAuthentication: true
-      commandOptions: '-var-file="${{ parameters.terraformVarFile }}"'
+      commandOptions: '-var-file=${{ parameters.terraformVarFile }}'
 
   - task: TerraformTaskV4@4
     displayName: Terraform Validate
