@@ -68,7 +68,6 @@ steps:
       command: 'output'
       workingDirectory: '${{ parameters.terraformFolder }}'
       environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
-      commandOptions: '-var-file="${{ parameters.terraformVarFile }}" -auto-approve'
 
   - powershell: |
       $terraformOutput = Get-Content "$(terraform_output_internal.jsonOutputVariablesPath)" | ConvertFrom-Json
