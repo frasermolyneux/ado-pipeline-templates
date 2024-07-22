@@ -65,7 +65,7 @@ steps:
     name: terraform_output_internal
     inputs:
       provider: 'azurerm'
-      command: 'apply'
+      command: 'output'
       workingDirectory: '${{ parameters.terraformFolder }}'
       environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
       commandOptions: '-var-file="${{ parameters.terraformVarFile }}" -auto-approve'
