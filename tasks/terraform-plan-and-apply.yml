@@ -51,7 +51,7 @@ steps:
       workingDirectory: '${{ parameters.terraformFolder }}'
       environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
 
-  - task: TerraformTaskV4@4
+  - task: TerraformTaskV2@2
     displayName: Terraform Apply
     name: terraform_apply
     inputs:
