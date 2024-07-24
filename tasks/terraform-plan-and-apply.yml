@@ -60,6 +60,8 @@ steps:
       environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
       commandOptions: '-var-file="${{ parameters.terraformVarFile }}" -auto-approve'
 
+  - powershell: terraform output -json > $(Build.ArtifactStagingDirectory)/terraform-output.json
+
   - task: TerraformTaskV4@4
     displayName: Terraform Output
     name: terraform_output_internal
