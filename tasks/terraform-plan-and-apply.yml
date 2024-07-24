@@ -60,9 +60,13 @@ steps:
       environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
       commandOptions: '-var-file="${{ parameters.terraformVarFile }}" -auto-approve'
 
-  - powershell: |
-      cd ${{ parameters.terraformFolder }}
-      terraform output -json > $(Build.ArtifactStagingDirectory)/terraform-output.json
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      scriptType: 'pscore'
+      inlineScript: | 
+        cd ${{ parameters.terraformFolder }}
+        terraform output -json > $(Build.ArtifactStagingDirectory)/terraform-output.json
 
   - powershell: |
       Write-Host "Reading terraform output vars from $(Build.ArtifactStagingDirectory)/terraform-output.json"
