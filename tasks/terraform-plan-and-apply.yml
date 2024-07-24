@@ -64,6 +64,7 @@ steps:
     inputs:
       azureSubscription: '${{ parameters.azureSubscription }}'
       scriptType: 'pscore'
+      scriptLocation: 'inlineScript'
       inlineScript: | 
         cd ${{ parameters.terraformFolder }}
         terraform output -json > $(Build.ArtifactStagingDirectory)/terraform-output.json
