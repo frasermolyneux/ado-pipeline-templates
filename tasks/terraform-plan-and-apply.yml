@@ -90,7 +90,7 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
         export ARM_USE_OIDC=true
 
-        terraform plan -var-file=${{ parameters.terraform-var-file }}
+        terraform plan -var-file=${{ parameters.terraformVarFile }}
 
   - task: AzureCLI@2
     displayName: 'Terraform Plan'
@@ -108,7 +108,7 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
         export ARM_USE_OIDC=true
 
-        terraform apply -auto-approve -var-file=${{ parameters.terraform-var-file }}
+        terraform apply -auto-approve -var-file=${{ parameters.terraformVarFile }}
 
   - task: AzureCLI@2
     displayName: 'Terraform Output'
