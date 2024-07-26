@@ -94,7 +94,7 @@ steps:
         terraform plan -var-file=${{ parameters.terraformVarFile }}
 
   - task: AzureCLI@2
-    displayName: 'Terraform Plan'
+    displayName: 'Terraform Apply'
     inputs:
       addSpnToEnvironment: true
       azureSubscription: '${{ parameters.azureSubscription }}'
