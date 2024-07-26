@@ -7,6 +7,12 @@ parameters:
 - name: terraformVarFile
   default: "tfvars/dev.tfvars"
   type: string
+- name: terraformBackendFile
+  default: ""
+  type: string
+- name: terraformBackendSubscriptionId
+  default: ""
+  type: string
 - name: backendResourceGroupName
   type: string
   default: ""
@@ -28,39 +34,84 @@ steps:
     inputs:
       terraformVersion: ${{ parameters.terraformVersion }}
 
-  - task: TerraformTaskV4@4
-    displayName: Terraform Init
+  - task: AzureCLI@2
+    displayName: 'Terraform Init'
     inputs:
-      provider: 'azurerm'
-      command: 'init'
-      workingDirectory: '${{ parameters.terraformFolder }}'
-      backendServiceArm: '${{ parameters.azureSubscription }}'
-      backendAzureRmResourceGroupName: '${{ parameters.backendResourceGroupName }}'
-      backendAzureRmStorageAccountName: '${{ parameters.backendStorageAccountName }}'
-      backendAzureRmContainerName: '${{ parameters.backendContainerName }}'
-      backendAzureRmKey: '${{ parameters.backendKey }}'
-      backendAzureRmUseEnvironmentVariablesForAuthentication: true
-      backendAzureRmUseEntraIdForAuthentication: true
-      commandOptions: '-var-file=${{ parameters.terraformVarFile }}'
+      addSpnToEnvironment: true
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      scriptType: bash
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        cd ${{ parameters.terraformFolder }}
 
-  - task: TerraformTaskV4@4
-    displayName: Terraform Validate
-    inputs:
-      provider: 'azurerm'
-      command: 'validate'
-      workingDirectory: '${{ parameters.terraformFolder }}'
-      environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_OIDC_TOKEN=$idToken
+        export ARM_TENANT_ID=$tenantId
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export ARM_USE_OIDC=true
 
-  - task: TerraformTaskV4@4
-    displayName: Terraform Apply
-    inputs:
-      provider: 'azurerm'
-      command: 'apply'
-      workingDirectory: '${{ parameters.terraformFolder }}'
-      environmentServiceNameAzureRM: '${{ parameters.azureSubscription }}'
-      commandOptions: '-var-file="${{ parameters.terraformVarFile }}" -auto-approve'
+        if ("${{ parameters.terraformBackendFile }}" -ne "") {
+          terraform init -backend-config="${{ parameters.terraformBackendFile }}" -var-file=${{ parameters.terraformVarFile }}
+        } else {
+          terraform init -backend-config="subscription_id=${{ parameters.terraformBackendSubscriptionId }}" -backend-config="resource_group_name=${{ parameters.backendResourceGroupName }}" -backend-config="storage_account_name=${{ parameters.backendStorageAccountName }}" -backend-config="container_name=${{ parameters.backendContainerName }}" -backend-config="key=${{ parameters.backendKey }}" -var-file=${{ parameters.terraformVarFile }}
+        }
 
   - task: AzureCLI@2
+    displayName: 'Terraform Validate'
+    inputs:
+      addSpnToEnvironment: true
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      scriptType: bash
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        cd ${{ parameters.terraformFolder }}
+
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_OIDC_TOKEN=$idToken
+        export ARM_TENANT_ID=$tenantId
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export ARM_USE_OIDC=true
+
+        terraform validate
+
+  - task: AzureCLI@2
+    displayName: 'Terraform Plan'
+    inputs:
+      addSpnToEnvironment: true
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      scriptType: bash
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        cd ${{ parameters.terraformFolder }}
+
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_OIDC_TOKEN=$idToken
+        export ARM_TENANT_ID=$tenantId
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export ARM_USE_OIDC=true
+
+        terraform plan -var-file=${{ parameters.terraform-var-file }}
+
+  - task: AzureCLI@2
+    displayName: 'Terraform Plan'
+    inputs:
+      addSpnToEnvironment: true
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      scriptType: bash
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        cd ${{ parameters.terraformFolder }}
+
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_OIDC_TOKEN=$idToken
+        export ARM_TENANT_ID=$tenantId
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export ARM_USE_OIDC=true
+
+        terraform apply -auto-approve -var-file=${{ parameters.terraform-var-file }}
+
+  - task: AzureCLI@2
+    displayName: 'Terraform Output'
     inputs:
       addSpnToEnvironment: true
       azureSubscription: '${{ parameters.azureSubscription }}'
