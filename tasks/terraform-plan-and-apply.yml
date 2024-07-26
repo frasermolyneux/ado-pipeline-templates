@@ -50,7 +50,7 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
         export ARM_USE_OIDC=true
 
-        if ["${{ parameters.terraformBackendFile }}" -ne ""]; then
+        if ["${{ parameters.terraformBackendFile }}" != ""]; then
           terraform init -backend-config="${{ parameters.terraformBackendFile }}" -var-file=${{ parameters.terraformVarFile }}
         else
           terraform init -backend-config="subscription_id=${{ parameters.terraformBackendSubscriptionId }}" -backend-config="resource_group_name=${{ parameters.backendResourceGroupName }}" -backend-config="storage_account_name=${{ parameters.backendStorageAccountName }}" -backend-config="container_name=${{ parameters.backendContainerName }}" -backend-config="key=${{ parameters.backendKey }}" -var-file=${{ parameters.terraformVarFile }}
