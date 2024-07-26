@@ -68,6 +68,11 @@ steps:
       scriptLocation: 'inlineScript'
       inlineScript: | 
         cd ${{ parameters.terraformFolder }}
+
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_CLIENT_SECRET=$servicePrincipalKey
+        export ARM_TENANT_ID=$tenantId
+
         terraform output -json > $(Build.ArtifactStagingDirectory)/terraform-output.json
 
   - powershell: |
