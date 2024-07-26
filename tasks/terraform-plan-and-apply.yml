@@ -21,12 +21,6 @@ parameters:
   type: string
 - name: terraformVersion
   default: latest
-- name: AZURE_CLIENT_ID
-  type: string
-- name: AZURE_TENANT_ID
-  type: string
-- name: AZURE_SUBSCRIPTION_ID
-  type: string
 
 steps:
   - task: TerraformInstaller@0
@@ -69,16 +63,12 @@ steps:
   - task: AzureCLI@2
     inputs:
       azureSubscription: '${{ parameters.azureSubscription }}'
+      addSpnToEnvironment: true
       scriptType: 'pscore'
       scriptLocation: 'inlineScript'
       inlineScript: | 
         cd ${{ parameters.terraformFolder }}
         terraform output -json > $(Build.ArtifactStagingDirectory)/terraform-output.json
-    env:
-      ARM_CLIENT_ID: ${{ parameters.AZURE_CLIENT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ parameters.AZURE_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ parameters.AZURE_TENANT_ID }}
-      ARM_USE_OIDC: true
 
   - powershell: |
       Write-Host "Reading terraform output vars from $(Build.ArtifactStagingDirectory)/terraform-output.json"
