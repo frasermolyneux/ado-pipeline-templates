@@ -75,7 +75,7 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
         export ARM_USE_OIDC=true
 
-        terraform output -json -var-file="${{ parameters.terraformVarFile }}" > $(Build.ArtifactStagingDirectory)/terraform-output.json
+        terraform output -json > $(Build.ArtifactStagingDirectory)/terraform-output.json
 
   - powershell: |
       Write-Host "Reading terraform output vars from $(Build.ArtifactStagingDirectory)/terraform-output.json"
