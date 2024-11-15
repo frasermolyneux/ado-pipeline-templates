@@ -48,6 +48,7 @@ steps:
         export ARM_OIDC_TOKEN=$idToken
         export ARM_TENANT_ID=$tenantId
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export ARM_USE_AZUREAD=true
         export ARM_USE_OIDC=true
 
         if [ "${{ parameters.terraformBackendFile }}" != "" ] 
@@ -71,6 +72,7 @@ steps:
         export ARM_OIDC_TOKEN=$idToken
         export ARM_TENANT_ID=$tenantId
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export ARM_USE_AZUREAD=true
         export ARM_USE_OIDC=true
 
         terraform validate
@@ -89,6 +91,7 @@ steps:
         export ARM_OIDC_TOKEN=$idToken
         export ARM_TENANT_ID=$tenantId
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export ARM_USE_AZUREAD=true
         export ARM_USE_OIDC=true
 
         terraform plan -var-file=${{ parameters.terraformVarFile }}
@@ -107,6 +110,7 @@ steps:
         export ARM_OIDC_TOKEN=$idToken
         export ARM_TENANT_ID=$tenantId
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export ARM_USE_AZUREAD=true
         export ARM_USE_OIDC=true
 
         terraform apply -auto-approve -var-file=${{ parameters.terraformVarFile }}
@@ -125,6 +129,7 @@ steps:
         export ARM_OIDC_TOKEN=$idToken
         export ARM_TENANT_ID=$tenantId
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export ARM_USE_AZUREAD=true
         export ARM_USE_OIDC=true
 
         terraform output -json > $(Build.ArtifactStagingDirectory)/terraform-output.json
