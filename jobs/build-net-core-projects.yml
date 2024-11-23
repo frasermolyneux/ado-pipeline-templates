@@ -29,6 +29,9 @@ parameters:
 - name: additionalPublishSteps
   type: stepList
   default: []
+- name: codeQlEnabled
+  type: boolean
+  default: true
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -37,6 +40,11 @@ jobs:
     clean: all
 
   steps:
+  - task: AdvancedSecurity-Codeql-Init@1
+    condition: and(succeeded(), eq('${{ parameters.codeQlEnabled }}', 'true'))
+    inputs:
+      languages: "csharp, javascript" # Supported languages: csharp, cpp, go, java, javascript, python, ruby, swift
+
   - task: UseDotNet@2
     displayName: 'Use .NET SDK ${{ parameters.dotnetSdkVersion }}'
     inputs:
@@ -55,6 +63,12 @@ jobs:
       arguments: '--no-restore --configuration ${{ parameters.buildConfiguration }}'
       projects: ${{ parameters.projects }}
 
+  - task: AdvancedSecurity-Dependency-Scanning@1 # More details on this task: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/advanced-security-dependency-scanning-v1?view=azure-pipelines
+    condition: and(succeeded(), eq('${{ parameters.codeQlEnabled }}', 'true'))
+
+  - task: AdvancedSecurity-Codeql-Analyze@1 # More details on this task: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/advanced-security-codeql-analyze-v1?view=azure-pipelines
+    condition: and(succeeded(), eq('${{ parameters.codeQlEnabled }}', 'true'))
+    
   - task: DotNetCoreCLI@2
     condition: and(succeeded(), ne('${{ parameters.toolsManifestPath }}', ''))
     displayName: 'Install .NET tools from local manifest'

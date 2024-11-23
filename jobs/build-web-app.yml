@@ -14,6 +14,9 @@ parameters:
 - name: nugetConfigPath
   type: string
   default: ''
+- name: codeQlEnabled
+  type: boolean
+  default: true
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -26,6 +29,11 @@ jobs:
     buildConfiguration: 'Release'
 
   steps:
+  - task: AdvancedSecurity-Codeql-Init@1
+    condition: and(succeeded(), eq('${{ parameters.codeQlEnabled }}', 'true'))
+    inputs:
+      languages: "csharp, javascript" # Supported languages: csharp, cpp, go, java, javascript, python, ruby, swift
+
   - task: UseDotNet@2
     inputs:
       version: 6.0.x
@@ -46,6 +54,12 @@ jobs:
       projects: '**/${{ parameters.projectName }}.csproj'
       arguments: '--configuration $(buildConfiguration)'
     displayName: 'dotnet build $(buildConfiguration)'
+
+  - task: AdvancedSecurity-Dependency-Scanning@1 # More details on this task: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/advanced-security-dependency-scanning-v1?view=azure-pipelines
+    condition: and(succeeded(), eq('${{ parameters.codeQlEnabled }}', 'true'))
+
+  - task: AdvancedSecurity-Codeql-Analyze@1 # More details on this task: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/advanced-security-codeql-analyze-v1?view=azure-pipelines
+    condition: and(succeeded(), eq('${{ parameters.codeQlEnabled }}', 'true'))
 
   - task: DotNetCoreCLI@2
     condition: and(succeeded(), eq('${{ parameters.publishArtifact }}', 'true'))
