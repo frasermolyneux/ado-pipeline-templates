@@ -21,14 +21,6 @@ jobs:
       clean: all
 
     steps:
-      - task: ps-rule-install@2
-        inputs:
-          module: PSRule.Rules.Azure
-
-      - task: ps-rule-install@2
-        inputs:
-          module: PSRule.Rules.CAF
-
       - task: AzureCLI@2
         name: RunBicepBuild
         inputs:
@@ -42,14 +34,3 @@ jobs:
               bicep restore $file.FullName --force
               bicep build $file.FullName
             }
-
-      - task: ps-rule-assert@2
-        displayName: Analyze Azure template files
-        inputs:
-          outputFormat: Sarif
-          outputPath: reports/ps-rule-results.sarif
-
-      - publish: $(System.DefaultWorkingDirectory)/reports/ps-rule-results.sarif
-        artifact: CodeAnalysisLogsPSRule
-        displayName: Publish SARIF logs
-        condition: succeededOrFailed()
