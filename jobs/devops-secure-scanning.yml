@@ -48,7 +48,12 @@ jobs:
         outputFormat: Sarif
         outputPath: reports/ps-rule-results.sarif
 
-    - publish: '**\*.sarif'
+    - task: CopyFiles@2
+      inputs:
+        contents: '**/.sarif'
+        targetFolder: $(Build.ArtifactStagingDirectory)/sarif
+
+    - publish: '$(Build.ArtifactStagingDirectory)/sarif/*.sarif'
       artifact: CodeAnalysisLogs
       displayName: Publish SARIF Logs
       condition: succeededOrFailed()
