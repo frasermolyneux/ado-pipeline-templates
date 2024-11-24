@@ -50,7 +50,7 @@ jobs:
 
     - task: CopyFiles@2
       inputs:
-        contents: '**/.sarif'
+        contents: '**/*.sarif'
         targetFolder: $(Build.ArtifactStagingDirectory)/sarif
 
     - publish: '$(Build.ArtifactStagingDirectory)/sarif/*.sarif'
