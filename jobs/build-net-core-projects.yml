@@ -31,7 +31,7 @@ parameters:
   default: []
 - name: codeQlEnabled
   type: boolean
-  default: true
+  default: false
 
 jobs:
 - job: ${{ parameters.jobName }}
