@@ -54,7 +54,7 @@ jobs:
         targetFolder: $(Build.ArtifactStagingDirectory)/sarif
         flattenFolders: true
 
-    - publish: '$(Build.ArtifactStagingDirectory)/sarif/*.sarif'
+    - publish: '$(Build.ArtifactStagingDirectory)/sarif'
       artifact: CodeAnalysisLogs
       displayName: Publish SARIF Logs
       condition: succeededOrFailed()
