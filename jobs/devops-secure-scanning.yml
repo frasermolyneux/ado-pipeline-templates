@@ -48,7 +48,7 @@ jobs:
         outputFormat: Sarif
         outputPath: reports/ps-rule-results.sarif
 
-    - publish: '*.sarif'
+    - publish: '**\*.sarif'
       artifact: CodeAnalysisLogs
       displayName: Publish SARIF Logs
       condition: succeededOrFailed()
