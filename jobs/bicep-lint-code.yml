@@ -50,6 +50,6 @@ jobs:
           outputPath: reports/ps-rule-results.sarif
 
       - publish: $(System.DefaultWorkingDirectory)/reports/ps-rule-results.sarif
-        artifact: CodeAnalysisLogs
+        artifact: CodeAnalysisLogsPSRule
         displayName: Publish SARIF logs
         condition: succeededOrFailed()

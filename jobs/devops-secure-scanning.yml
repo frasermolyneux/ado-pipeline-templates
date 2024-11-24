@@ -32,3 +32,4 @@ jobs:
         break: true
         # publish: boolean. Optional. If true, will publish the output SARIF results file to the chosen pipeline artifact. Default: true.
         # artifactName: string. Optional. The name of the pipeline artifact to publish the SARIF result file to. Default: CodeAnalysisLogs*.
+        artifactName: CodeAnalysisLogsDevOpsScan
