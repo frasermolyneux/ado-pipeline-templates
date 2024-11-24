@@ -52,6 +52,7 @@ jobs:
       inputs:
         contents: '**/*.sarif'
         targetFolder: $(Build.ArtifactStagingDirectory)/sarif
+        flattenFolders: true
 
     - publish: '$(Build.ArtifactStagingDirectory)/sarif/*.sarif'
       artifact: CodeAnalysisLogs
