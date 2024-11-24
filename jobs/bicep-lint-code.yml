@@ -46,12 +46,10 @@ jobs:
       - task: ps-rule-assert@2
         displayName: Analyze Azure template files
         inputs:
-          outputFormat: NUnit3
-          outputPath: reports/ps-rule-results.xml
+          outputFormat: Sarif
+          outputPath: reports/ps-rule-results.sarif
 
-      - task: PublishTestResults@2
-        displayName: "Publish PSRule results"
-        inputs:
-          testRunTitle: "PSRule"
-          testRunner: NUnit
-          testResultsFiles: "reports/ps-rule-results.xml"
+      - publish: $(System.DefaultWorkingDirectory)/reports/ps-rule-results.sarif
+        artifact: CodeAnalysisLogs
+        displayName: Publish SARIF logs
+        condition: succeededOrFailed()
