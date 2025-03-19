@@ -44,6 +44,7 @@ jobs:
 
     - task: ps-rule-assert@2
       displayName: Analyze Azure template files
+      condition: succeededOrFailed()
       inputs:
         outputFormat: Sarif
         outputPath: reports/ps-rule-results.sarif
