@@ -50,6 +50,8 @@ jobs:
         outputPath: reports/ps-rule-results.sarif
 
     - task: CopyFiles@2
+      displayName: Copy SARIF Logs
+      condition: succeededOrFailed()
       inputs:
         contents: '**/*.sarif'
         targetFolder: $(Build.ArtifactStagingDirectory)/sarif
