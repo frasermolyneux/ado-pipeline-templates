@@ -1,0 +1,29 @@
+name: PR Verify
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+permissions: {}
+
+jobs:
+  validate-yaml:
+    permissions:
+      contents: read
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      
+    - name: Validate YAML files
+      run: |
+        echo "Validating YAML syntax for all template files..."
+        for file in $(find jobs stages tasks -name "*.yml"); do
+          echo "Checking $file"
+          python -c "import yaml; yaml.safe_load(open('$file'))"
+        done
+        echo "All YAML files are valid!"
