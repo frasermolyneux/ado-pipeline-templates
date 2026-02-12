@@ -2,7 +2,7 @@ name: Code Quality
 
 on:
   schedule:
-    - cron: '0 3 * * 1'
+    - cron: "0 3 * * 1" # Monday 3am UTC
   push:
     branches:
       - main
@@ -18,22 +18,21 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
-        
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@v5
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.projectKey=frasermolyneux_ado-pipeline-templates
-          -Dsonar.organization=frasermolyneux
-          -Dsonar.host.url=https://sonarcloud.io
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=frasermolyneux_ado-pipeline-templates
+            -Dsonar.organization=frasermolyneux
+            -Dsonar.host.url=https://sonarcloud.io
 
   devops-secure-scanning:
     permissions:
@@ -49,12 +48,10 @@ jobs:
       pull-requests: write
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v6
-      
-    - name: Dependency Review
-      uses: actions/dependency-review-action@v4
-      with:
-        comment-summary-in-pr: always
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          comment-summary-in-pr: always

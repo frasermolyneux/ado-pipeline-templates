@@ -3,9 +3,9 @@ name: Build and Test
 on:
   push:
     branches:
-      - 'feature/**'
-      - 'bugfix/**'
-      - 'hotfix/**'
+      - "feature/**"
+      - "bugfix/**"
+      - "hotfix/**"
 
 permissions: {}
 
@@ -14,16 +14,15 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v6
-      
-    - name: Validate YAML files
-      run: |
-        echo "Validating YAML syntax for all template files..."
-        for file in $(find jobs stages tasks -name "*.yml"); do
-          echo "Checking $file"
-          python -c "import yaml; yaml.safe_load(open('$file'))"
-        done
-        echo "All YAML files are valid!"
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate YAML files
+        run: |
+          echo "Validating YAML syntax for all template files..."
+          for file in $(find jobs stages tasks -name "*.yml"); do
+            echo "Checking $file"
+            python -c "import yaml; yaml.safe_load(open('$file'))"
+          done
+          echo "All YAML files are valid!"
