@@ -28,7 +28,7 @@ This repository contains reusable Azure DevOps YAML pipeline templates for build
 
 ## Dependencies
 - No runtime dependencies; templates are consumed by Azure DevOps pipelines in other repositories.
-- GitHub Actions workflows use: `actions/checkout@v6`, `SonarSource/sonarcloud-github-action@v5`, `actions/dependency-review-action@v4`, `dependabot/fetch-metadata@v2`.
+- GitHub Actions workflows use: `actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0`, `SonarSource/sonarcloud-github-action@v5`, `actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294`, `dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98`.
 
 ## Adding or Modifying Templates
 - Mirror existing parameter casing and default patterns when adding new templates.
