@@ -26,13 +26,14 @@ parameters:
   default: "terraform.tfstate"
   type: string
 - name: terraformVersion
-  default: latest
+  type: string
+  default: ""
 
 steps:
-  - task: TerraformInstaller@0
-    displayName: 'Terraform: Install'
-    inputs:
-      terraformVersion: ${{ parameters.terraformVersion }}
+  - template: terraform-toolchain.yml
+    parameters:
+      terraformFolder: '${{ parameters.terraformFolder }}'
+      terraformVersion: '${{ parameters.terraformVersion }}'
 
   - task: AzureCLI@2
     displayName: 'Terraform Init'
@@ -53,9 +54,9 @@ steps:
 
         if [ "${{ parameters.terraformBackendFile }}" != "" ] 
         then
-          terraform init -backend-config="${{ parameters.terraformBackendFile }}" -var-file=${{ parameters.terraformVarFile }}
+          terraform init -lockfile=readonly -backend-config="${{ parameters.terraformBackendFile }}" -var-file=${{ parameters.terraformVarFile }}
         else
-          terraform init -backend-config="subscription_id=${{ parameters.terraformBackendSubscriptionId }}" -backend-config="resource_group_name=${{ parameters.backendResourceGroupName }}" -backend-config="storage_account_name=${{ parameters.backendStorageAccountName }}" -backend-config="container_name=${{ parameters.backendContainerName }}" -backend-config="key=${{ parameters.backendKey }}" -var-file=${{ parameters.terraformVarFile }}
+          terraform init -lockfile=readonly -backend-config="subscription_id=${{ parameters.terraformBackendSubscriptionId }}" -backend-config="resource_group_name=${{ parameters.backendResourceGroupName }}" -backend-config="storage_account_name=${{ parameters.backendStorageAccountName }}" -backend-config="container_name=${{ parameters.backendContainerName }}" -backend-config="key=${{ parameters.backendKey }}" -var-file=${{ parameters.terraformVarFile }}
         fi
 
   - task: AzureCLI@2
@@ -114,6 +115,11 @@ steps:
         export ARM_USE_OIDC=true
 
         terraform apply -auto-approve -var-file=${{ parameters.terraformVarFile }}
+
+  - template: terraform-execution-receipt.yml
+    parameters:
+      terraformFolder: '${{ parameters.terraformFolder }}'
+      operation: apply
 
   - task: AzureCLI@2
     displayName: 'Terraform Output'
