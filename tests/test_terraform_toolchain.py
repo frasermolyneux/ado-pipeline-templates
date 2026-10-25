@@ -14,6 +14,9 @@ class TerraformToolchainTests(unittest.TestCase):
         script = yaml.safe_load(template.read_text())["steps"][0]["inputs"]["script"]
         with tempfile.TemporaryDirectory(prefix="ado-terraform-pin-") as temporary:
             directory = pathlib.Path(temporary)
+            if other_checkout == "case-only":
+                directory = directory / "repository"
+                directory.mkdir()
             subprocess.run(["git", "init", "--quiet", str(directory)], check=True)
             if pin is not None:
                 (directory / ".terraform-version").write_text(pin)
@@ -23,7 +26,8 @@ class TerraformToolchainTests(unittest.TestCase):
                 subprocess.run(["git", "-C", str(directory), "add", "."], check=True)
             build_root = directory
             if other_checkout:
-                build_root = directory / "other-checkout"
+                build_root = (directory.with_name("Repository") if other_checkout == "case-only"
+                              else directory / "other-checkout")
                 subprocess.run(["git", "init", "--quiet", str(build_root)], check=True)
             program = directory / "verify.ps1"
             program.write_text(script)
@@ -57,6 +61,14 @@ class TerraformToolchainTests(unittest.TestCase):
         result = self.check_pin("1.17.0", other_checkout=True)
         self.assertNotEqual(0, result.returncode)
         self.assertIn("triggering build repository", result.stderr)
+
+    def test_checkout_identity_respects_platform_path_case(self):
+        result = self.check_pin("1.17.0", other_checkout="case-only")
+        if os.name == "nt":
+            self.assertEqual(0, result.returncode, result.stderr)
+        else:
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn("triggering build repository", result.stderr)
 
     def test_receipt_records_actual_selection_without_private_inputs(self):
         template = pathlib.Path(__file__).parents[1] / "tasks" / "terraform-execution-receipt.yml"
