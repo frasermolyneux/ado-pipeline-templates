@@ -26,7 +26,7 @@
 
 ## Task Template (`tasks/`)
 - `terraform-plan-and-apply.yml`: step template using Azure CLI with OIDC; performs init/validate/plan/apply with either backend file or explicit backend parameters, then captures `terraform output` to pipeline variables and artifact JSON.
-- `terraform-toolchain.yml`: rejects missing/untracked root pins and locks, floating versions, and explicit version mismatches before installing the exact CLI.
+- `terraform-toolchain.yml`: requires unchanged root pins and locks committed in `HEAD`, rejects floating versions and explicit version mismatches, and checks the triggering checkout identity before installing the exact CLI.
 - `terraform-execution-receipt.yml`: publishes only actual CLI/provider selections, lock digest, source/build identity, operation and timestamp; never publishes state, plan, output or environment contents.
 
 ## Terraform migration boundary

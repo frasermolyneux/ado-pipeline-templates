@@ -9,7 +9,8 @@ import yaml
 
 
 class TerraformToolchainTests(unittest.TestCase):
-    def check_pin(self, pin, requested="", lock=True, tracked=True, other_checkout=False):
+    def check_pin(self, pin, requested="", lock=True, tracked=True, other_checkout=False,
+                  committed=True, change=None):
         template = pathlib.Path(__file__).parents[1] / "tasks" / "terraform-toolchain.yml"
         script = yaml.safe_load(template.read_text())["steps"][0]["inputs"]["script"]
         with tempfile.TemporaryDirectory(prefix="ado-terraform-pin-") as temporary:
@@ -24,6 +25,15 @@ class TerraformToolchainTests(unittest.TestCase):
                 (directory / ".terraform.lock.hcl").write_text("# Fixture lock\n")
             if tracked:
                 subprocess.run(["git", "-C", str(directory), "add", "."], check=True)
+                if committed:
+                    subprocess.run(["git", "-C", str(directory), "-c", "user.name=Fixture",
+                                    "-c", "user.email=fixture@example.invalid", "commit", "--quiet", "-m", "fixture"],
+                                   check=True)
+            if change == "working-pin":
+                (directory / ".terraform-version").write_text("1.17.1")
+            elif change == "staged-lock":
+                (directory / ".terraform.lock.hcl").write_text("# Different lock\n")
+                subprocess.run(["git", "-C", str(directory), "add", ".terraform.lock.hcl"], check=True)
             build_root = directory
             if other_checkout:
                 build_root = (directory.with_name("Repository") if other_checkout == "case-only"
@@ -69,6 +79,18 @@ class TerraformToolchainTests(unittest.TestCase):
         else:
             self.assertNotEqual(0, result.returncode)
             self.assertIn("triggering build repository", result.stderr)
+
+    def test_rejects_newly_staged_inputs_absent_from_head(self):
+        result = self.check_pin("1.17.0", committed=False)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("must exist in HEAD", result.stderr)
+
+    def test_rejects_working_and_staged_input_changes(self):
+        for change in ("working-pin", "staged-lock"):
+            with self.subTest(change=change):
+                result = self.check_pin("1.17.0", change=change)
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn("must match the source commit", result.stderr)
 
     def test_receipt_records_actual_selection_without_private_inputs(self):
         template = pathlib.Path(__file__).parents[1] / "tasks" / "terraform-execution-receipt.yml"

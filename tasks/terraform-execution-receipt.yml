@@ -23,6 +23,16 @@ steps:
       if ($LASTEXITCODE -ne 0 -or -not [string]::Equals($repositoryRoot.Trim(), $buildRoot.Trim(), $comparison)) {
         throw 'Receipt source must belong to the triggering build repository checkout.'
       }
+      $prefix = [string](git -C "$root" rev-parse --show-prefix)
+      if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the committed Terraform root.' }
+      foreach ($file in @('.terraform-version', '.terraform.lock.hcl')) {
+        git -C "$root" cat-file -e "HEAD:$prefix$file"
+        if ($LASTEXITCODE -ne 0) { throw "Receipt source file must exist in HEAD: $file" }
+      }
+      git -C "$root" diff --quiet --no-ext-diff HEAD -- .terraform-version .terraform.lock.hcl
+      if ($LASTEXITCODE -ne 0) { throw 'Receipt pin and lock must match the source commit without local edits.' }
+      git -C "$root" diff --cached --quiet --no-ext-diff HEAD -- .terraform-version .terraform.lock.hcl
+      if ($LASTEXITCODE -ne 0) { throw 'Receipt pin and lock must not contain staged changes.' }
       $relativeRoot = [IO.Path]::GetRelativePath($repositoryRoot.Trim(), $root).Replace('\', '/')
       if ($relativeRoot -eq '..' -or $relativeRoot.StartsWith('../')) { throw 'Root is outside the source repository.' }
       $versionJson = terraform "-chdir=$root" version -json

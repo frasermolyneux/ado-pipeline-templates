@@ -22,6 +22,16 @@ steps:
       if ($LASTEXITCODE -ne 0 -or -not [string]::Equals($repositoryRoot.Trim(), $buildRoot.Trim(), $comparison)) {
         throw 'Terraform root must belong to the triggering build repository checkout.'
       }
+      $prefix = [string](git -C "$root" rev-parse --show-prefix)
+      if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the committed Terraform root.' }
+      foreach ($file in @('.terraform-version', '.terraform.lock.hcl')) {
+        git -C "$root" cat-file -e "HEAD:$prefix$file"
+        if ($LASTEXITCODE -ne 0) { throw "Terraform source file must exist in HEAD: $file" }
+      }
+      git -C "$root" diff --quiet --no-ext-diff HEAD -- .terraform-version .terraform.lock.hcl
+      if ($LASTEXITCODE -ne 0) { throw 'Terraform pin and lock must match the source commit without local edits.' }
+      git -C "$root" diff --cached --quiet --no-ext-diff HEAD -- .terraform-version .terraform.lock.hcl
+      if ($LASTEXITCODE -ne 0) { throw 'Terraform pin and lock must not contain staged changes.' }
       $pin = (Get-Content -Raw -LiteralPath (Join-Path $root '.terraform-version')).Trim()
       if ($pin -notmatch '^\d+\.\d+\.\d+$') {
         throw 'The Terraform root must pin an exact stable CLI version.'
