@@ -10,11 +10,14 @@ import yaml
 
 class TerraformToolchainTests(unittest.TestCase):
     def check_pin(self, pin, requested="", lock=True, tracked=True, other_checkout=False,
-                  committed=True, change=None):
+                  committed=True, change=None, multi_checkout=False):
         template = pathlib.Path(__file__).parents[1] / "tasks" / "terraform-toolchain.yml"
         script = yaml.safe_load(template.read_text())["steps"][0]["inputs"]["script"]
         with tempfile.TemporaryDirectory(prefix="ado-terraform-pin-") as temporary:
             directory = pathlib.Path(temporary)
+            if multi_checkout:
+                directory = directory / "s" / "repository"
+                directory.mkdir(parents=True)
             if other_checkout == "case-only":
                 directory = directory / "repository"
                 directory.mkdir()
@@ -39,18 +42,25 @@ class TerraformToolchainTests(unittest.TestCase):
                 build_root = (directory.with_name("Repository") if other_checkout == "case-only"
                               else directory / "other-checkout")
                 subprocess.run(["git", "init", "--quiet", str(build_root)], check=True)
+            if multi_checkout:
+                build_root = directory.parent
             program = directory / "verify.ps1"
             program.write_text(script)
             return subprocess.run(
                 ["pwsh", "-NoProfile", "-NonInteractive", "-File", str(program)],
                 env=dict(os.environ, TF_ROOT=str(directory), TF_REQUESTED_VERSION=requested,
-                         BUILD_REPOSITORY_LOCALPATH=str(build_root)),
+                         BUILD_REPOSITORY_LOCALPATH=str(build_root), BUILD_REPOSITORY_NAME="fixture/repository"),
                 capture_output=True, text=True)
 
     def test_selects_committed_exact_pin(self):
         result = self.check_pin("1.17.0\n")
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn("terraformSelectedVersion]1.17.0", result.stdout)
+
+    def test_selects_the_default_multi_repository_self_checkout(self):
+        result = self.check_pin("1.17.0", multi_checkout=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("Resolving the default multi-repository self checkout", result.stdout)
 
     def test_rejects_conflicting_explicit_version(self):
         result = self.check_pin("1.17.0", requested="1.15.8")
@@ -96,7 +106,8 @@ class TerraformToolchainTests(unittest.TestCase):
         template = pathlib.Path(__file__).parents[1] / "tasks" / "terraform-execution-receipt.yml"
         script = yaml.safe_load(template.read_text())["steps"][0]["inputs"]["script"]
         with tempfile.TemporaryDirectory(prefix="ado-terraform-receipt-") as temporary:
-            directory = pathlib.Path(temporary)
+            directory = pathlib.Path(temporary) / "repository"
+            directory.mkdir()
             subprocess.run(["git", "init", "--quiet", str(directory)], check=True)
             (directory / ".terraform-version").write_text("1.17.0")
             (directory / ".terraform.lock.hcl").write_text("# Fixture lock\n")
@@ -113,7 +124,7 @@ class TerraformToolchainTests(unittest.TestCase):
                 env=dict(os.environ, TF_ROOT=str(directory), TF_OPERATION="apply",
                          AGENT_TEMPDIRECTORY=str(directory), SYSTEM_JOBID="fixture-job", BUILD_BUILDID="42",
                          BUILD_REPOSITORY_NAME="fixture/repository", BUILD_SOURCEBRANCH="refs/heads/main",
-                         BUILD_REPOSITORY_LOCALPATH=str(directory),
+                         BUILD_REPOSITORY_LOCALPATH=str(directory.parent),
                          PRIVATE_FIXTURE_INPUT="never export this value"),
                 capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stderr)

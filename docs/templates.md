@@ -29,6 +29,11 @@
 - `terraform-toolchain.yml`: requires unchanged root pins and locks committed in `HEAD`, rejects floating versions and explicit version mismatches, and checks the triggering checkout identity before installing the exact CLI.
 - `terraform-execution-receipt.yml`: publishes only actual CLI/provider selections, lock digest, source/build identity, operation and timestamp; never publishes state, plan, output or environment contents.
 
+Checkout checks support single checkout, an explicit self-checkout path, and
+Azure DevOps' default multi-checkout layout under `s/<repository-name>`.
+Terraform in a different repository is rejected instead of borrowing the
+triggering repository's receipt identity.
+
 ## Terraform migration boundary
 
 Commit `.terraform-version` and a Terraform-generated `.terraform.lock.hcl` in every

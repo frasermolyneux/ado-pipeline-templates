@@ -17,7 +17,14 @@ steps:
       if (-not $env:BUILD_REPOSITORY_LOCALPATH) { throw 'Build repository checkout identity is required.' }
       $repositoryRoot = git -C "$root" rev-parse --show-toplevel
       if ($LASTEXITCODE -ne 0) { throw 'Cannot identify the Terraform source checkout.' }
-      $buildRoot = git -C "$env:BUILD_REPOSITORY_LOCALPATH" rev-parse --show-toplevel
+      $buildCheckout = $env:BUILD_REPOSITORY_LOCALPATH
+      if (-not (Test-Path -LiteralPath (Join-Path $buildCheckout '.git'))) {
+        $repositoryName = ($env:BUILD_REPOSITORY_NAME -split '[/\\]')[-1]
+        if (-not $repositoryName -or $repositoryName -in @('.', '..')) { throw 'Build repository name is required for multi-checkout.' }
+        $buildCheckout = Join-Path $buildCheckout $repositoryName
+        Write-Host 'Resolving the default multi-repository self checkout.'
+      }
+      $buildRoot = git -C "$buildCheckout" rev-parse --show-toplevel
       $comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
       if ($LASTEXITCODE -ne 0 -or -not [string]::Equals($repositoryRoot.Trim(), $buildRoot.Trim(), $comparison)) {
         throw 'Terraform root must belong to the triggering build repository checkout.'
