@@ -1,0 +1,85 @@
+parameters:
+- name: terraformFolder
+  type: string
+- name: operation
+  type: string
+  values: [plan, apply]
+
+steps:
+- task: PowerShell@2
+  displayName: 'Terraform: Record successful operation metadata'
+  condition: succeeded()
+  inputs:
+    targetType: inline
+    pwsh: true
+    script: |
+      $ErrorActionPreference = 'Stop'
+      $root = (Resolve-Path -LiteralPath $env:TF_ROOT).Path
+      $repositoryRoot = git -C "$root" rev-parse --show-toplevel
+      if ($LASTEXITCODE -ne 0) { throw 'Cannot identify receipt source repository.' }
+      if (-not $env:BUILD_REPOSITORY_LOCALPATH) { throw 'Build repository checkout identity is required.' }
+      $buildCheckout = $env:BUILD_REPOSITORY_LOCALPATH
+      if (-not (Test-Path -LiteralPath (Join-Path $buildCheckout '.git'))) {
+        $repositoryName = ($env:BUILD_REPOSITORY_NAME -split '[/\\]')[-1]
+        if (-not $repositoryName -or $repositoryName -in @('.', '..')) { throw 'Build repository name is required for multi-checkout.' }
+        $buildCheckout = Join-Path $buildCheckout $repositoryName
+        Write-Host 'Resolving the default multi-repository self checkout.'
+      }
+      $buildRoot = git -C "$buildCheckout" rev-parse --show-toplevel
+      $comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+      if ($LASTEXITCODE -ne 0 -or -not [string]::Equals($repositoryRoot.Trim(), $buildRoot.Trim(), $comparison)) {
+        throw 'Receipt source must belong to the triggering build repository checkout.'
+      }
+      $prefix = [string](git -C "$root" rev-parse --show-prefix)
+      if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the committed Terraform root.' }
+      foreach ($file in @('.terraform-version', '.terraform.lock.hcl')) {
+        git -C "$root" cat-file -e "HEAD:$prefix$file"
+        if ($LASTEXITCODE -ne 0) { throw "Receipt source file must exist in HEAD: $file" }
+      }
+      git -C "$root" diff --quiet --no-ext-diff HEAD -- .terraform-version .terraform.lock.hcl
+      if ($LASTEXITCODE -ne 0) { throw 'Receipt pin and lock must match the source commit without local edits.' }
+      git -C "$root" diff --cached --quiet --no-ext-diff HEAD -- .terraform-version .terraform.lock.hcl
+      if ($LASTEXITCODE -ne 0) { throw 'Receipt pin and lock must not contain staged changes.' }
+      $relativeRoot = [IO.Path]::GetRelativePath($repositoryRoot.Trim(), $root).Replace('\', '/')
+      if ($relativeRoot -eq '..' -or $relativeRoot.StartsWith('../')) { throw 'Root is outside the source repository.' }
+      $versionJson = terraform "-chdir=$root" version -json
+      if ($LASTEXITCODE -ne 0) { throw 'Cannot read actual Terraform version.' }
+      $version = $versionJson | ConvertFrom-Json
+      $pin = (Get-Content -Raw -LiteralPath (Join-Path $root '.terraform-version')).Trim()
+      if ($version.terraform_version -ne $pin) { throw 'Executed Terraform does not match the root pin.' }
+      $sourceCommit = git -C "$root" rev-parse HEAD
+      if ($LASTEXITCODE -ne 0) { throw 'Cannot identify receipt source commit.' }
+      $lockHash = (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $root '.terraform.lock.hcl')).Hash.ToLowerInvariant()
+      $rootHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($relativeRoot))).Substring(0, 12).ToLowerInvariant()
+      $invocation = [Guid]::NewGuid().ToString('N')
+      $name = "terraform-execution-$($env:SYSTEM_JOBID)-$rootHash-$($env:TF_OPERATION)-$invocation"
+      $file = Join-Path $env:AGENT_TEMPDIRECTORY "$name.json"
+      $receipt = [ordered]@{
+        schemaVersion = 'azure-devops-terraform-execution-v1'
+        repository = $env:BUILD_REPOSITORY_NAME
+        sourceCommit = $sourceCommit.Trim()
+        rootDirectory = $relativeRoot
+        buildId = $env:BUILD_BUILDID
+        job = $env:SYSTEM_JOBID
+        ref = $env:BUILD_SOURCEBRANCH
+        operation = $env:TF_OPERATION
+        outcome = 'success'
+        observedAt = [DateTime]::UtcNow.ToString('o')
+        terraformVersion = $version.terraform_version
+        platform = $version.platform
+        providerSelections = $version.provider_selections
+        lockSha256 = $lockHash
+      }
+      $receipt | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $file -Encoding utf8NoBOM
+      Write-Host "##vso[task.setvariable variable=terraformReceiptFile]$file"
+      Write-Host "##vso[task.setvariable variable=terraformReceiptName]$name"
+  env:
+    TF_ROOT: ${{ parameters.terraformFolder }}
+    TF_OPERATION: ${{ parameters.operation }}
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Terraform: Publish bounded execution receipt'
+  condition: succeeded()
+  inputs:
+    targetPath: '$(terraformReceiptFile)'
+    artifactName: '$(terraformReceiptName)'

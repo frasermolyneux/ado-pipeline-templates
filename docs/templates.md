@@ -21,8 +21,37 @@
 
 ## Stage Templates (`stages/`)
 - `build-function-app.yml`: single-stage function app build that archives and publishes an artifact zip.
-- `validate-terraform-environment.yml`: installs Terraform 1.0.7, runs init/validate/plan with backend and environment service connection parameters; exposes `commandOptions` with `-var-file` wiring.
-- `deploy-terraform-environment.yml`: installs Terraform 1.0.7, runs init/validate/plan/apply, then emits output variables from apply JSON.
+- `validate-terraform-environment.yml`: installs the committed root CLI, runs read-only-lock init/validate/plan with backend and environment service connection parameters, and publishes a plan execution receipt.
+- `deploy-terraform-environment.yml`: installs the committed root CLI, runs read-only-lock init/validate/plan/apply, then publishes an apply receipt and emits output variables from apply JSON.
 
 ## Task Template (`tasks/`)
 - `terraform-plan-and-apply.yml`: step template using Azure CLI with OIDC; performs init/validate/plan/apply with either backend file or explicit backend parameters, then captures `terraform output` to pipeline variables and artifact JSON.
+- `terraform-toolchain.yml`: requires unchanged root pins and locks committed in `HEAD`, rejects floating versions and explicit version mismatches, and checks the triggering checkout identity before installing the exact CLI.
+- `terraform-execution-receipt.yml`: publishes only actual CLI/provider selections, lock digest, source/build identity, operation and timestamp; never publishes state, plan, output or environment contents.
+
+Checkout checks support single checkout, an explicit self-checkout path, and
+Azure DevOps' default multi-checkout layout under `s/<repository-name>`.
+Terraform in a different repository is rejected instead of borrowing the
+triggering repository's receipt identity.
+
+## Terraform migration boundary
+
+Commit `.terraform-version` and a Terraform-generated `.terraform.lock.hcl` in every
+consumer root before adopting this revision. Optional `terraformVersion` is a
+compatibility assertion and must equal the root pin; there is no `latest` fallback.
+Include Linux/Windows checksums when regenerating locks in a reviewed update PR.
+Normal init is read-only; Dependabot owns provider/module updates, not the CLI pin.
+
+The stage templates retain the legacy `TerraformTaskV2@2` extension and must not be
+assumed to support modern federated service connections. The Azure CLI task template
+requires a workload-identity-federated service connection. No active GitHub estate
+consumer was found; external Azure DevOps installations and extension versions cannot
+be verified by this repository's GitHub checks. Pin the template repository revision,
+validate template expansion in the consuming ADO project and review environment plans
+before changing a live pipeline.
+
+ADO receipts use `azure-devops-terraform-execution-v1`, not GitHub's receipt trust
+contract. Radar does not currently import them or treat them as verified production
+evidence. A plan receipt is not an apply, and apply metadata does not establish
+application runtime state. Existing output-variable handling remains a separate,
+potentially sensitive pipeline contract; do not include it in the receipt artifact.

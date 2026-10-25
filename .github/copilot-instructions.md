@@ -24,7 +24,10 @@ This repository contains reusable Azure DevOps YAML pipeline templates for build
 - Artifacts are named deterministically: `${projectName}.zip` for app builds, `database` for SQL dacpac.
 - Deployment templates support blue/green slot swaps using a `staging` slot.
 - NuGet packages use `majorMinorVersion.BuildId` versioning and require a `nuget-token` secret from a variable group.
-- Terraform templates default to version 1.0.7; the task-level template supports OIDC via Azure CLI.
+- Terraform templates require a committed root `.terraform-version` and `.terraform.lock.hcl`;
+  normal initialization is read-only. Optional `terraformVersion` must match the root pin.
+  The task-level template supports federated Azure CLI service connections; the legacy
+  stage templates retain TerraformTaskV2 and are not asserted to support current OIDC.
 
 ## Dependencies
 - No runtime dependencies; templates are consumed by Azure DevOps pipelines in other repositories.

@@ -1,0 +1,61 @@
+parameters:
+- name: terraformFolder
+  type: string
+- name: terraformVersion
+  type: string
+  default: ""
+
+steps:
+- task: PowerShell@2
+  displayName: 'Terraform: Require committed root toolchain'
+  inputs:
+    targetType: inline
+    pwsh: true
+    script: |
+      $ErrorActionPreference = 'Stop'
+      $root = (Resolve-Path -LiteralPath $env:TF_ROOT).Path
+      if (-not $env:BUILD_REPOSITORY_LOCALPATH) { throw 'Build repository checkout identity is required.' }
+      $repositoryRoot = git -C "$root" rev-parse --show-toplevel
+      if ($LASTEXITCODE -ne 0) { throw 'Cannot identify the Terraform source checkout.' }
+      $buildCheckout = $env:BUILD_REPOSITORY_LOCALPATH
+      if (-not (Test-Path -LiteralPath (Join-Path $buildCheckout '.git'))) {
+        $repositoryName = ($env:BUILD_REPOSITORY_NAME -split '[/\\]')[-1]
+        if (-not $repositoryName -or $repositoryName -in @('.', '..')) { throw 'Build repository name is required for multi-checkout.' }
+        $buildCheckout = Join-Path $buildCheckout $repositoryName
+        Write-Host 'Resolving the default multi-repository self checkout.'
+      }
+      $buildRoot = git -C "$buildCheckout" rev-parse --show-toplevel
+      $comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+      if ($LASTEXITCODE -ne 0 -or -not [string]::Equals($repositoryRoot.Trim(), $buildRoot.Trim(), $comparison)) {
+        throw 'Terraform root must belong to the triggering build repository checkout.'
+      }
+      $prefix = [string](git -C "$root" rev-parse --show-prefix)
+      if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the committed Terraform root.' }
+      foreach ($file in @('.terraform-version', '.terraform.lock.hcl')) {
+        git -C "$root" cat-file -e "HEAD:$prefix$file"
+        if ($LASTEXITCODE -ne 0) { throw "Terraform source file must exist in HEAD: $file" }
+      }
+      git -C "$root" diff --quiet --no-ext-diff HEAD -- .terraform-version .terraform.lock.hcl
+      if ($LASTEXITCODE -ne 0) { throw 'Terraform pin and lock must match the source commit without local edits.' }
+      git -C "$root" diff --cached --quiet --no-ext-diff HEAD -- .terraform-version .terraform.lock.hcl
+      if ($LASTEXITCODE -ne 0) { throw 'Terraform pin and lock must not contain staged changes.' }
+      $pin = (Get-Content -Raw -LiteralPath (Join-Path $root '.terraform-version')).Trim()
+      if ($pin -notmatch '^\d+\.\d+\.\d+$') {
+        throw 'The Terraform root must pin an exact stable CLI version.'
+      }
+      if ($env:TF_REQUESTED_VERSION -and $env:TF_REQUESTED_VERSION -ne $pin) {
+        throw 'The requested Terraform version does not match the committed root pin.'
+      }
+      git -C "$root" ls-files --error-unmatch .terraform-version .terraform.lock.hcl *> $null
+      if ($LASTEXITCODE -ne 0) {
+        throw 'Commit both the root CLI pin and provider lock before running this template.'
+      }
+      Write-Host "##vso[task.setvariable variable=terraformSelectedVersion]$pin"
+  env:
+    TF_ROOT: ${{ parameters.terraformFolder }}
+    TF_REQUESTED_VERSION: ${{ parameters.terraformVersion }}
+
+- task: TerraformInstaller@0
+  displayName: 'Terraform: Install root-selected CLI'
+  inputs:
+    terraformVersion: '$(terraformSelectedVersion)'

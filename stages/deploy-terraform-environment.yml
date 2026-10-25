@@ -7,6 +7,9 @@ parameters:
 - name: backendAzureRmKey
 - name: environmentServiceNameAzureRM
 - name: varFile
+- name: terraformVersion
+  type: string
+  default: ""
 
 stages:
 - stage: DeployTerraform
@@ -17,15 +20,16 @@ stages:
   jobs:
   - job: DeployTerraform
     steps:
-      - task: TerraformInstaller@0
-        displayName: 'Terraform: Install'
-        inputs:
-          terraformVersion: '1.0.7'
+      - template: ../tasks/terraform-toolchain.yml
+        parameters:
+          terraformFolder: '${{ parameters.workingDirectory }}'
+          terraformVersion: '${{ parameters.terraformVersion }}'
 
       - task: TerraformTaskV2@2
         displayName: 'Terraform: Init'
         inputs:
           workingDirectory: '${{ parameters.workingDirectory }}'
+          commandOptions: '-lockfile=readonly'
           backendServiceArm: '${{ parameters.backendServiceArm }}'
           backendAzureRmResourceGroupName: '${{ parameters.backendAzureRmResourceGroupName }}'
           backendAzureRmStorageAccountName: '${{ parameters.backendAzureRmStorageAccountName }}'
@@ -55,6 +59,11 @@ stages:
           workingDirectory: '${{ parameters.workingDirectory }}'
           commandOptions: '$(commandOptions)'
           environmentServiceNameAzureRM: '${{ parameters.environmentServiceNameAzureRM }}'
+
+      - template: ../tasks/terraform-execution-receipt.yml
+        parameters:
+          terraformFolder: '${{ parameters.workingDirectory }}'
+          operation: apply
 
       - powershell: |
           $terraformOutput = Get-Content "$(terraform_apply.jsonOutputVariablesPath)" | ConvertFrom-Json

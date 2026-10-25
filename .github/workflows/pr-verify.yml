@@ -28,3 +28,6 @@ jobs:
             python -c "import yaml; yaml.safe_load(open('$file'))"
           done
           echo "All YAML files are valid!"
+
+      - name: Verify Terraform root-pin failure boundaries
+        run: python -m unittest discover -s tests -p 'test_terraform_toolchain.py'
